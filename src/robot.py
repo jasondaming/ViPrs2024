@@ -17,10 +17,15 @@ class MyRobot(wpilib.TimedRobot):
         This function is called upon program startup and
         should be used for any initialization code.
         """
-        self.leftDrive = phoenix5.WPI_TalonSRX(1)
-        self.rightDrive = phoenix5.WPI_TalonSRX(4)
+        self.leftFront = phoenix5.WPI_TalonSRX(4)
+        self.leftBack = phoenix5.WPI_TalonSRX(3)
+        self.rightFront = phoenix5.WPI_TalonSRX(1)
+        self.rightBack = phoenix5.WPI_TalonSRX(2)
+
+        self.leftDrive = wpilib.MotorControllerGroup(self.leftFront, self.leftBack)
+        self.rightDrive = wpilib.MotorControllerGroup(self.rightFront, self.rightBack)
         
-        self.spark1 = rev.CANSparkMax(5, rev._rev.CANSparkLowLevel.MotorType.kBrushless)
+        # self.spark1 = rev.CANSparkMax(5, rev._rev.CANSparkLowLevel.MotorType.kBrushless)
         # self.drive1 = wpilib.drive.RobotDriveBase
         self.robotDrive = wpilib.drive.DifferentialDrive(
             self.leftDrive, self.rightDrive
@@ -55,7 +60,7 @@ class MyRobot(wpilib.TimedRobot):
         self.robotDrive.arcadeDrive(
             -self.controller.getLeftY(), -self.controller.getRightX()
         )
-        self.spark1.set(0.15)
+        # self.spark1.set(0.15)
 
     def testInit(self):
         """This function is called once each time the robot enters test mode."""
