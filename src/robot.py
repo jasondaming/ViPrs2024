@@ -22,6 +22,11 @@ class MyRobot(wpilib.TimedRobot):
         self.rightFront = phoenix5.WPI_TalonSRX(1)
         self.rightBack = phoenix5.WPI_TalonSRX(2)
 
+        self.leftFront.setNeutralMode(phoenix5.NeutralMode.Brake)
+        self.leftBack.setNeutralMode(phoenix5.NeutralMode.Brake)
+        self.rightFront.setNeutralMode(phoenix5.NeutralMode.Brake)
+        self.rightBack.setNeutralMode(phoenix5.NeutralMode.Brake)
+
         self.leftDrive = wpilib.MotorControllerGroup(self.leftFront, self.leftBack)
         self.rightDrive = wpilib.MotorControllerGroup(self.rightFront, self.rightBack)
         
