@@ -10,6 +10,13 @@ import wpilib
 import wpilib.drive
 import phoenix5
 import rev
+import numpy as np
+
+PI = 3.1415926535
+INPUTSCALEFACTOR = 0.5
+
+def filterInput(x):
+    return INPUTSCALEFACTOR * x
 
 class MyRobot(wpilib.TimedRobot):
     def robotInit(self):
@@ -53,7 +60,7 @@ class MyRobot(wpilib.TimedRobot):
         # Drive for two seconds
         if self.timer.get() < 2.0:
             # Drive forwards half speed, make sure to turn input squaring off
-            self.robotDrive.arcadeDrive(0.5, 0, squareInputs=False)
+            self.robotDrive.arcadeDrive(0.5, 0, squareInputs=True)
         else:
             self.robotDrive.stopMotor()  # Stop robot
 
@@ -63,7 +70,7 @@ class MyRobot(wpilib.TimedRobot):
     def teleopPeriodic(self):
         """This function is called periodically during teleoperated mode."""
         self.robotDrive.arcadeDrive(
-            -self.controller.getLeftY(), -self.controller.getRightX()
+            filterInput(-self.controller.getLeftY()), filterInput(-self.controller.getRightX())
         )
         # self.spark1.set(0.15)
 
