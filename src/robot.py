@@ -10,69 +10,53 @@ import wpilib
 import wpilib.drive
 import phoenix5
 import rev
-
-class MyRobot(wpilib.TimedRobot):
+import commands2
+from robotContainer import RobotContainer
+class MyRobot(commands2.TimedCommandRobot):
+    autonomousCommand = None
     def robotInit(self):
         """
         This function is called upon program startup and
         should be used for any initialization code.
         """
-        self.leftFront = phoenix5.WPI_TalonSRX(4)
-        self.leftBack = phoenix5.WPI_TalonSRX(3)
-        self.rightFront = phoenix5.WPI_TalonSRX(1)
-        self.rightBack = phoenix5.WPI_TalonSRX(2)
-
-        self.leftFront.setNeutralMode(phoenix5.NeutralMode.Brake)
-        self.leftBack.setNeutralMode(phoenix5.NeutralMode.Brake)
-        self.rightFront.setNeutralMode(phoenix5.NeutralMode.Brake)
-        self.rightBack.setNeutralMode(phoenix5.NeutralMode.Brake)
-
-        self.leftDrive = wpilib.MotorControllerGroup(self.leftFront, self.leftBack)
-        self.rightDrive = wpilib.MotorControllerGroup(self.rightFront, self.rightBack)
-        
-        # self.spark1 = rev.CANSparkMax(5, rev._rev.CANSparkLowLevel.MotorType.kBrushless)
-        # self.drive1 = wpilib.drive.RobotDriveBase
-        self.robotDrive = wpilib.drive.DifferentialDrive(
-            self.leftDrive, self.rightDrive
-        )
-        self.controller = wpilib.XboxController(0)
-        self.timer = wpilib.Timer()
+        # self.timer = wpilib.Timer()
 
         # We need to invert one side of the drivetrain so that positive voltages
         # result in both sides moving forward. Depending on how your robot's
         # gearbox is constructed, you might have to invert the left side instead.
-        self.rightDrive.setInverted(True)
+        self.container = RobotContainer()
 
+    def robotPeriodic(self):
+        commands2.CommandScheduler.getInstance().run()
+    
     def autonomousInit(self):
         """This function is run once each time the robot enters autonomous mode."""
-        self.timer.restart()
+        # self.timer.restart()
+        self.autonomousCommand = self.container.getAutonomousCommand()
+        if self.autonomousCommand:
+            self.autonomousCommand.schedule()
 
     def autonomousPeriodic(self):
         """This function is called periodically during autonomous."""
 
-        # Drive for two seconds
-        if self.timer.get() < 2.0:
-            # Drive forwards half speed, make sure to turn input squaring off
-            self.robotDrive.arcadeDrive(0.5, 0, squareInputs=False)
-        else:
-            self.robotDrive.stopMotor()  # Stop robot
+        pass
 
-    def teleopInit(self):
+    def teleopInit(self): 
         """This function is called once each time the robot enters teleoperated mode."""
-
+        if self.autonomousCommand:
+            self.autonomousCommand.cancel()
     def teleopPeriodic(self):
         """This function is called periodically during teleoperated mode."""
-        self.robotDrive.arcadeDrive(
-            -self.controller.getLeftY(), -self.controller.getRightX()
-        )
+        pass
         # self.spark1.set(0.15)
 
-    def testInit(self):
+    def testInit(self): 
         """This function is called once each time the robot enters test mode."""
-
-    def testPeriodic(self):
+        commands2.CommandScheduler.getInstance().cancelAll()
+        
+    def testPeriodic(self): 
         """This function is called periodically during test mode."""
-
+        pass
 
 if __name__ == "__main__":
     wpilib.run(MyRobot)
