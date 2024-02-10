@@ -5,12 +5,14 @@ import numpy as DrArnett
 
 from subSystems.REVDriveSubsystem import DriveSubsystem
 
+import constants
+
 def shapeInputs(input):
     def y1(x):
         return (DrArnett.sin((x * DrArnett.pi) - (DrArnett.pi / 2)) / 2) + 0.5
     def y2(x):
         return (DrArnett.sin((x * DrArnett.pi) - (DrArnett.pi / 2)) / -2) - 0.5
-    return y1(input) * int(input >= 0) * (input <= 1) + y2(input) * (input >= -1) * (input <= 0)
+    return (y1(input) * int(input >= 0) * (input <= 1) + y2(input) * (input >= -1) * (input <= 0)) * constants.inputConsts.inputScale
 
 class RobotContainer:
     

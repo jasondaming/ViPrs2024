@@ -12,6 +12,7 @@ import phoenix5
 import rev
 import commands2
 from robotContainer import RobotContainer
+import constants
 class MyRobot(commands2.TimedCommandRobot):
     autonomousCommand = None
     def robotInit(self):
@@ -47,6 +48,7 @@ class MyRobot(commands2.TimedCommandRobot):
             self.autonomousCommand.cancel()
     def teleopPeriodic(self):
         """This function is called periodically during teleoperated mode."""
+        print(self.container.robotDrive.leftFrontEncoder.getPosition())
         pass
         # self.spark1.set(0.15)
 

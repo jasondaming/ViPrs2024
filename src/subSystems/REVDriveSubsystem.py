@@ -2,6 +2,7 @@ import wpilib
 import wpilib.drive
 import commands2
 import rev
+import constants
 
 class DriveSubsystem(commands2.Subsystem):
     def __init__(self):
@@ -27,4 +28,6 @@ class DriveSubsystem(commands2.Subsystem):
         )
         self.rightDrive.setInverted(True)
 
+        self.leftFrontEncoder = self.leftFront.getEncoder()
+        
     
