@@ -26,6 +26,7 @@ class MyRobot(wpilib.TimedRobot):
         # result in both sides moving forward. Depending on how your robot's
         # gearbox is constructed, you might have to invert the left side instead.
         self.controller = wpilib.XboxController(0)
+        self.encoder_31 = self.motor_31.getEncoder()
 
     def autonomousInit(self):
         """This function is run once each time the robot enters autonomous mode."""
@@ -44,6 +45,7 @@ class MyRobot(wpilib.TimedRobot):
         """This function is called periodically during teleoperated mode."""
         # self.motor_31.set(self.controller.getLeftY())
         self.motor_31.set(self.controller.getRightY())
+        print(self.encoder_31.getPosition())
         # self.spark1.set(0.15)
 
     def testInit(self): 
