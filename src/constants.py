@@ -1,5 +1,5 @@
 class inputConsts:
-    inputScale = 0.5
+    inputScale = 0.8
 
 class convert:
     def in2m(inches):
