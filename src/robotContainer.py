@@ -4,6 +4,7 @@ import commands2.cmd
 import numpy as DrArnett
 
 from subSystems.REVDriveSubsystem import DriveSubsystem
+from subSystems.armSubsystem import ArmSubsystem
 
 import constants
 
@@ -12,13 +13,14 @@ def shapeInputs(input, scale_factor):
         return (DrArnett.sin((x * DrArnett.pi) - (DrArnett.pi / 2)) / 2) + 0.5
     def y2(x):
         return (DrArnett.sin((x * DrArnett.pi) - (DrArnett.pi / 2)) / -2) - 0.5
-    return (y1(input) * int(input >= 0) * (input <= 1) + y2(input) * (input >= -1) * (input <= 0)) * scale_factor *constants.inputConsts.inputScale
+    return (y1(input) * int(input >= 0) * (input <= 1) + y2(input) * (input >= -1) * (input <= 0)) * scale_factor * constants.inputConsts.inputScale
 
 class RobotContainer:
     
     def __init__(self):
         self.driverControler = commands2.button.CommandXboxController(0)
         self.robotDrive = DriveSubsystem()
+        self.arm = ArmSubsystem()
         self.configureButtonBindings()
         self.scale_factor = 1
 
