@@ -14,12 +14,13 @@ class ArmSubsystem(commands2.Subsystem):
 
         self.topShooter = rev.CANSparkMax(7, rev.CANSparkMax.MotorType.kBrushless)
         self.bottomShooter = rev.CANSparkMax(8, rev.CANSparkMax.MotorType.kBrushless)
+        self.bottomShooter.setInverted(True)
         self.intake = rev.CANSparkMax(9, rev.CANSparkMax.MotorType.kBrushless)
 
-        self.armRight.IdleMode(rev.CANSparkBase.IdleMode.kBrake)
-        self.armLeft.IdleMode(rev.CANSparkBase.IdleMode.kBrake)
-        self.topShooter.IdleMode(rev.CANSparkBase.IdleMode.kBrake)
-        self.bottomShooter.IdleMode(rev.CANSparkBase.IdleMode.kBrake)
+        self.armRight.IdleMode(rev.CANSparkBase.IdleMode.kCoast)
+        self.armLeft.IdleMode(rev.CANSparkBase.IdleMode.kCoast)
+        self.topShooter.IdleMode(rev.CANSparkBase.IdleMode.kCoast)
+        self.bottomShooter.IdleMode(rev.CANSparkBase.IdleMode.kCoast)
         self.intake.IdleMode(rev.CANSparkBase.IdleMode.kBrake)
 
         self.motorArmRightEncoder = self.armRight.getEncoder()
@@ -34,8 +35,59 @@ class ArmSubsystem(commands2.Subsystem):
         self.armRightEncoder.setPositionOffset(0.85)
         self.armLeftEncoder.setPositionOffset(self.armLeftEncoder.getAbsolutePosition())
 
-    def shoot():
+        # Photo Sensor to detect if a note is loaded
+        self.noteSensor = wpilib.DigitalInput(1) # change channel later
+
+        # bottom limit switch to detect if the arm is all the way down
+        self.bottomLimit = wpilib.DigitalInput(2) # change channel later
+
+        self.armTargetAngle = 0
+
+    def goto(self, angle):
+        self.armTargetAngle = angle
+
+    def updateArmPosition(self):
+        delta = self.armTargetAngle - self.getArmPosition()
+        self.arm.set(delta * constants.armConsts.rotationSpeedScaler)
+
+    def shootHigh(self):
         pass
+        """
+        self.topShooter.set(1)
+        self.bottomShooter.set(1)
+        while topSpeed < 2500 or bottomSpeed < 2500{
+            
+        }
+        self.intake.set(1)
+        while isNoteLoaded(){
+            
+        }
+        self.topShooter.set(0)
+        self.bottomShooter.set(0)
+        self.intake.set(0)
+        """
+
+    def pickup(self):
+        pass
+        """
+        if not isNoteLoaded(){
+            self.intake.set(0.5)
+        }else{
+            self.intake.set(0)
+        }
+        """
+
+    def lowerArmForPickup():
+        pass
+        """
+        
+        """
+
+    def isNoteLoaded(self):
+        return self.noteSensor.get()
+    
+    def zeroEncoders(self):
+        self.armRightEncoder.setPositionOffset(self.armRightEncoder.getAbsolutePosition())
 
     def getArmPosition(self):
         return self.armRightEncoder.getAbsolutePosition() - self.armRightEncoder.getPositionOffset()

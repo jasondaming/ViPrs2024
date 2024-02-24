@@ -7,3 +7,6 @@ class convert:
     
 class drivetrain:
     wheelDiameter = convert.in2m(6)
+
+class armConsts:
+    rotationSpeedScaler = 0.5

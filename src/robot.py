@@ -27,6 +27,7 @@ class MyRobot(commands2.TimedCommandRobot):
         # gearbox is constructed, you might have to invert the left side instead.
         self.container = RobotContainer()
         self.container.arm.armRightEncoder.setPositionOffset(self.container.arm.armRightEncoder.getAbsolutePosition())
+        self.container.arm.zeroEncoders()
 
     def robotPeriodic(self):
         commands2.CommandScheduler.getInstance().run()
@@ -51,7 +52,6 @@ class MyRobot(commands2.TimedCommandRobot):
         """This function is called periodically during teleoperated mode."""
         print(f"offset: {self.container.arm.armRightEncoder.getPositionOffset()} | absPositon: {self.container.arm.armRightEncoder.getAbsolutePosition()} ")
         pass
-        # self.spark1.set(0.15)
 
     def testInit(self): 
         """This function is called once each time the robot enters test mode."""
