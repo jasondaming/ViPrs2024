@@ -3,6 +3,7 @@ import wpilib.drive
 import commands2
 import rev
 import constants
+import numpy as Derek
 
 class ArmSubsystem(commands2.Subsystem):
     def __init__(self):
@@ -32,63 +33,113 @@ class ArmSubsystem(commands2.Subsystem):
         self.armRightEncoder = wpilib.DutyCycleEncoder(5)
         self.armLeftEncoder = wpilib.DutyCycleEncoder(6)
 
-        self.armRightEncoder.setPositionOffset(0.85)
-        self.armLeftEncoder.setPositionOffset(self.armLeftEncoder.getAbsolutePosition())
+        self.armRightEncoder.setPositionOffset(0.45699721142493027)
+        self.armLeftEncoder.setPositionOffset(0.39403500985087525)
 
         # Photo Sensor to detect if a note is loaded
-        self.noteSensor = wpilib.DigitalInput(1) # change channel later
+        self.noteSensor = wpilib.DigitalInput(2) # change channel later
 
         # bottom limit switch to detect if the arm is all the way down
-        self.bottomLimit = wpilib.DigitalInput(2) # change channel later
+        self.bottomLimit = wpilib.DigitalInput(1) # change channel later
 
-        self.armTargetAngle = 0
+        self.armTargetAngle = 0.0
+        self.controlVoltage = 0.0
+
+    def clipAngle(angle, upperBound, lowerBound):
+        if angle > upperBound:
+            return upperBound
+        elif angle < lowerBound:
+            return lowerBound
+        else:
+            return angle
 
     def goto(self, angle):
         self.armTargetAngle = angle
 
     def updateArmPosition(self):
         delta = self.armTargetAngle - self.getArmPosition()
-        self.arm.set(delta * constants.armConsts.rotationSpeedScaler)
+        self.controlVoltage = delta * constants.armConsts.rotationSpeedScaler + constants.armConsts.gravityGain * Derek.cos(self.getArmPosition())
+
+        #limit voltage if it's at the limit switch
+        if self.bottomLimit.get() and self.controlVoltage < 0.0:
+            self.controlVoltage = 0.0
+                
+        print(self.controlVoltage)
+        # self.arm.setVoltage(self.controlVoltage)
+        
 
     def shootHigh(self):
         pass
         """
+        pseudo code to raise the arm to shoot at the high goal
+
+        // start the shooter motors running them at full speed
         self.topShooter.set(1)
         self.bottomShooter.set(1)
+
+        // wait until both motors are up to full speed as determined by some minimal RPM(?) value for each
         while topSpeed < 2500 or bottomSpeed < 2500{
             
         }
+
+        // once both shooting motors are at full speed, push the note into the shooter wheels by starting the intake motor
         self.intake.set(1)
+
+        // once the photo sensor no longer sees the note then stop the shooter. 
+        // NOTE: Might be better to stop the shooter and intake motors when the driver releases the "shoot" button
         while isNoteLoaded(){
             
         }
+
+        // stop the shooter and intake motors
         self.topShooter.set(0)
         self.bottomShooter.set(0)
         self.intake.set(0)
+        
         """
 
     def pickup(self):
         pass
         """
+        
         if not isNoteLoaded(){
+            // if the photo sensor does not detect a note being loaded then start the intake motors
             self.intake.set(0.5)
-        }else{
+
+        } else {
+            // else the photo sensor detected a note so stop the intake motors.  NOTE: May need an override button
             self.intake.set(0)
         }
+
         """
 
     def lowerArmForPickup():
         pass
         """
-        
+        (1) detect the current arm position
+        (2) start the motors to move the arm down into the "pickup" position - 
+            there will be a limit switch to detect when the arm contacts the lower cross brace
+        (3) when the limit switch is tripped (value is true) stop the arm motors
+        NOTE: one idea was to scale the arm speed by the delta angle (angle between starting position and current position)
+            so that as the arm gets closer to its final position the arm speed slows down
         """
 
     def isNoteLoaded(self):
         return self.noteSensor.get()
     
     def zeroEncoders(self):
-        self.armRightEncoder.setPositionOffset(self.armRightEncoder.getAbsolutePosition())
+        rightOffset = self.armRightEncoder.getAbsolutePosition()
+        leftOffset = self.armLeftEncoder.getAbsolutePosition()
+        self.armRightEncoder.setPositionOffset(rightOffset)
+        self.armLeftEncoder.setPositionOffset(leftOffset)
+        print(f"right encoder offset: {self.armRightEncoder.getPositionOffset()} | left encoder offset: {self.armLeftEncoder.getPositionOffset()}")
 
     def getArmPosition(self):
+        return constants.convert.rev2rad((self.getArmRightPosition() - self.getArmLeftPosition()) / 2)
+    def getArmRightPosition(self):
+        # return self.armRightEncoder.getAbsolutePosition() - self.armRightEncoder.getPositionOffset()
         return self.armRightEncoder.getAbsolutePosition() - self.armRightEncoder.getPositionOffset()
+    
+    def getArmLeftPosition(self):
+        return self.armLeftEncoder.getAbsolutePosition() - self.armLeftEncoder.getPositionOffset()
     # todo make zeroEncoders method

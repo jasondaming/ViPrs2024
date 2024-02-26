@@ -23,7 +23,7 @@ class RobotContainer:
         self.arm = ArmSubsystem()
         self.configureButtonBindings()
         self.scale_factor = 1
-
+        
         self.robotDrive.setDefaultCommand(
             commands2.cmd.run(
                 lambda: self.robotDrive.robotDrive.arcadeDrive(
@@ -35,6 +35,10 @@ class RobotContainer:
                     )
                 ),
                 self.robotDrive
+            ).alongWith(
+            commands2.cmd.run(
+                    lambda: self.arm.updateArmPosition()
+                )
             )
         )
 
@@ -48,6 +52,16 @@ class RobotContainer:
         self.driverControler.rightBumper().whileFalse(
             commands2.cmd.run(
                 lambda: self.go_fast()
+            )
+        )
+
+        self.driverControler.a().whileTrue(
+            commands2.cmd.run(
+                lambda: self.arm.goto(0.1)
+            )
+        ).whileFalse(
+            commands2.cmd.run(
+                lambda: self.arm.goto(0.0)
             )
         )
 

@@ -26,8 +26,6 @@ class MyRobot(commands2.TimedCommandRobot):
         # result in both sides moving forward. Depending on how your robot's
         # gearbox is constructed, you might have to invert the left side instead.
         self.container = RobotContainer()
-        self.container.arm.armRightEncoder.setPositionOffset(self.container.arm.armRightEncoder.getAbsolutePosition())
-        self.container.arm.zeroEncoders()
 
     def robotPeriodic(self):
         commands2.CommandScheduler.getInstance().run()
@@ -48,14 +46,17 @@ class MyRobot(commands2.TimedCommandRobot):
         """This function is called once each time the robot enters teleoperated mode."""
         if self.autonomousCommand:
             self.autonomousCommand.cancel()
+        
+
     def teleopPeriodic(self):
         """This function is called periodically during teleoperated mode."""
-        print(f"offset: {self.container.arm.armRightEncoder.getPositionOffset()} | absPositon: {self.container.arm.armRightEncoder.getAbsolutePosition()} ")
+        print(f"note: {self.container.arm.noteSensor.get()} | limit: {self.container.arm.bottomLimit.get()} | Positon: {self.container.arm.getArmPosition()} | target position: {self.container.arm.armTargetAngle}")
         pass
 
     def testInit(self): 
         """This function is called once each time the robot enters test mode."""
         commands2.CommandScheduler.getInstance().cancelAll()
+        self.container.arm.zeroEncoders()
         
     def testPeriodic(self): 
         """This function is called periodically during test mode."""
