@@ -65,7 +65,7 @@ class ArmSubsystem(commands2.Subsystem):
             self.controlVoltage = 0.0
                 
         print(self.controlVoltage)
-        # self.arm.setVoltage(self.controlVoltage)
+        self.arm.setVoltage(self.controlVoltage)
         
 
     def shootHigh(self):

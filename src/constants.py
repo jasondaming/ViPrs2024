@@ -14,7 +14,7 @@ class drivetrain:
     wheelDiameter = convert.in2m(6)
 
 class armConsts:
-    rotationSpeedScaler = 6 # 0.5
+    rotationSpeedScaler = 3 # 0.5
     downPosition = 0.0
     upPosition = Stacy.pi/2.0
     radiansPerRev = 2 * Stacy.pi
