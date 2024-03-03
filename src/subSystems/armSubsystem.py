@@ -15,7 +15,8 @@ class ArmSubsystem(commands2.Subsystem):
 
         self.topShooter = rev.CANSparkMax(7, rev.CANSparkMax.MotorType.kBrushless)
         self.bottomShooter = rev.CANSparkMax(8, rev.CANSparkMax.MotorType.kBrushless)
-        self.bottomShooter.setInverted(True)
+        self.shooters = wpilib.MotorControllerGroup(self.topShooter, self.bottomShooter)
+        # self.bottomShooter.setInverted(True)
         self.intake = rev.CANSparkMax(9, rev.CANSparkMax.MotorType.kBrushless)
 
         self.armRight.IdleMode(rev.CANSparkBase.IdleMode.kCoast)
@@ -65,7 +66,7 @@ class ArmSubsystem(commands2.Subsystem):
             self.controlVoltage = 0.0
                 
         print(self.controlVoltage)
-        self.arm.setVoltage(self.controlVoltage)
+        # self.arm.setVoltage(self.controlVoltage)
         
 
     def shootHigh(self):
@@ -142,4 +143,18 @@ class ArmSubsystem(commands2.Subsystem):
     
     def getArmLeftPosition(self):
         return self.armLeftEncoder.getAbsolutePosition() - self.armLeftEncoder.getPositionOffset()
+    
+    def shooterIdle(self):
+        self.intake.set(0.0)
+        self.topShooter.set(0.0)
+        self.bottomShooter.set(0.0)
     # todo make zeroEncoders method
+    def intakeNote(self):
+        self.intake.set(0.75)
+
+    def OuttakeNote(self):
+        self.intake.set(-0.75)
+
+    def pewpew(self):
+        self.shooters.set(-0.75)
+ 

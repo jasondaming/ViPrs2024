@@ -39,7 +39,12 @@ class RobotContainer:
             commands2.cmd.run(
                     lambda: self.arm.updateArmPosition()
                 )
+            ).alongWith(
+                commands2.cmd.run(
+                    lambda: self.arm.shooterIdle()
+                )
             )
+            
         )
 
     def configureButtonBindings(self):
@@ -64,6 +69,23 @@ class RobotContainer:
                 lambda: self.arm.goto(0.0)
             )
         )
+
+        self.driverControler.x().whileTrue(
+            commands2.cmd.run(
+                lambda: self.arm.intakeNote()
+            )
+        )
+        self.driverControler.y().whileTrue(
+            commands2.cmd.run(
+                lambda: self.arm.OuttakeNote()
+            )
+        )
+        self.driverControler.rightTrigger().whileTrue(
+            commands2.cmd.run(
+                lambda: self.arm.pewpew()
+            )
+        )
+        
 
     def go_slow(self):
         self.scale_factor = 0.5
