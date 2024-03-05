@@ -14,37 +14,28 @@ class ArmSubsystem(commands2.Subsystem):
         self.arm = wpilib.MotorControllerGroup(self.armRight, self.armLeft)
         self.armRight.setInverted(True)
 
-        # self.topShooter = rev.CANSparkMax(constants.CANIDs.topShootintSpark, rev.CANSparkMax.MotorType.kBrushless)
-        # self.bottomShooter = rev.CANSparkMax(constants.CANIDs.bottomShootingSpark, rev.CANSparkMax.MotorType.kBrushless)
-        # self.shooters = wpilib.MotorControllerGroup(self.topShooter, self.bottomShooter)
-        # self.bottomShooter.setInverted(True)
-        # self.intake = rev.CANSparkMax(constants.CANIDs.intakeSpark, rev.CANSparkMax.MotorType.kBrushless)
-
         self.armRight.IdleMode(rev.CANSparkBase.IdleMode.kCoast)
         self.armLeft.IdleMode(rev.CANSparkBase.IdleMode.kCoast)
-        # self.topShooter.IdleMode(rev.CANSparkBase.IdleMode.kCoast)
-        # self.bottomShooter.IdleMode(rev.CANSparkBase.IdleMode.kCoast)
-        # self.intake.IdleMode(rev.CANSparkBase.IdleMode.kBrake)
 
         self.motorArmRightEncoder = self.armRight.getEncoder()
         self.motorArmLeftEncoder = self.armLeft.getEncoder()
-        # self.topShooterEncoder = self.topShooter.getEncoder()
-        # self.bottomShooterEncoder = self.bottomShooter.getEncoder()
-        # self.intakeEncoder = self.intake.getEncoder()
 
-        self.armRightEncoder = wpilib.DutyCycleEncoder(5)
-        self.armLeftEncoder = wpilib.DutyCycleEncoder(6)
+        self.armRightEncoder = wpilib.DutyCycleEncoder(constants.armConsts.rightEncoder)
+        self.armLeftEncoder = wpilib.DutyCycleEncoder(constants.armConsts.leftEncoder)
 
         # adding relative encoders:
-        self.armRightEncoderRelative = wpilib.Encoder(3,4)
-        self.armLeftEncoderRelative = wpilib.Encoder(7,8)
+        self.armRightEncoderRelative = wpilib.Encoder(
+            constants.armConsts.rightRelativeEncoderA,
+            constants.armConsts.rightRelativeEncoderB
+        )
+        self.armLeftEncoderRelative = wpilib.Encoder(
+            constants.armConsts.leftRelativeEncoderA,
+            constants.armConsts.leftRelativeEncoderB
+        )
         self.armLeftEncoderRelative.setReverseDirection(True)
 
         self.armRightEncoder.setPositionOffset(0.45699721142493027)
         self.armLeftEncoder.setPositionOffset(0.39403500985087525)
-
-        # Photo Sensor to detect if a note is loaded
-        # self.noteSensor = wpilib.DigitalInput(2) # change channel later
 
         # bottom limit switch to detect if the arm is all the way down
         self.bottomLimit = wpilib.DigitalInput(constants.sensorConsts.armBottomLimit) # change channel later

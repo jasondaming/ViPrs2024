@@ -23,5 +23,15 @@ class ShooterSubsystem(commands2.Subsystem):
         self.topShooter.set(0.0)
         self.bottomShooter.set(0.0)
 
+    def setShooterSpeed(self, topSpeed, bottomSpeed):
+        self.topShooter.set(topSpeed)
+        self.bottomShooter.set(bottomSpeed)
+
+    def getShooterSpeeds(self):
+        return self.topShooter.get(), self.bottomShooter.get()
+
+    def getEncoderValues(self):
+        return self.topShooterEncoder.getVelocity(), self.bottomShooterEncoder.getVelocity()
+
     def __str__(self):
-        print("ShooterSubsystem: ")
+        return f"ShooterSubsystem: speed = {self.getShooterSpeeds()} | encoders = {self.getEncoderValues()}"

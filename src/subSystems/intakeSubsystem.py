@@ -9,12 +9,14 @@ class IntakeSubsystem(commands2.Subsystem):
         super().__init__()
 
         self.intake = rev.CANSparkMax(constants.CANIDs.intakeSpark, rev.CANSparkMax.MotorType.kBrushless)
-
         self.intake.IdleMode(rev.CANSparkBase.IdleMode.kBrake)
 
         self.intakeEncoder = self.intake.getEncoder() 
         
         self.noteSensor = wpilib.DigitalInput(constants.sensorConsts.noteSensorDIO) # change channel later
+
+    def getIntakeSpeed(self):
+        return self.intake.get()
 
     def setIntakeSpeed(self, speed):
         self.intake.set(speed)
@@ -23,4 +25,4 @@ class IntakeSubsystem(commands2.Subsystem):
         return self.intakeEncoder.getVelocity()
 
     def __str__(self):
-        print("IntakeSubsystem: ")
+        return f"IntakeSubsystem: Speed = {self.getIntakeSpeed()} | Encoder = {self.getIntakeEncoder()}"
