@@ -9,28 +9,28 @@ import numpy as Derek
 class ArmSubsystem(commands2.Subsystem):
     def __init__(self):
         super().__init__()
-        self.armRight = rev.CANSparkMax(5, rev.CANSparkMax.MotorType.kBrushless)
-        self.armLeft = rev.CANSparkMax(6, rev.CANSparkMax.MotorType.kBrushless)
+        self.armRight = rev.CANSparkMax(constants.CANIDs.rightArmSpark, rev.CANSparkMax.MotorType.kBrushless)
+        self.armLeft = rev.CANSparkMax(constants.CANIDs.leftArmSpark, rev.CANSparkMax.MotorType.kBrushless)
         self.arm = wpilib.MotorControllerGroup(self.armRight, self.armLeft)
         self.armRight.setInverted(True)
 
-        self.topShooter = rev.CANSparkMax(7, rev.CANSparkMax.MotorType.kBrushless)
-        self.bottomShooter = rev.CANSparkMax(8, rev.CANSparkMax.MotorType.kBrushless)
-        self.shooters = wpilib.MotorControllerGroup(self.topShooter, self.bottomShooter)
+        # self.topShooter = rev.CANSparkMax(constants.CANIDs.topShootintSpark, rev.CANSparkMax.MotorType.kBrushless)
+        # self.bottomShooter = rev.CANSparkMax(constants.CANIDs.bottomShootingSpark, rev.CANSparkMax.MotorType.kBrushless)
+        # self.shooters = wpilib.MotorControllerGroup(self.topShooter, self.bottomShooter)
         # self.bottomShooter.setInverted(True)
-        self.intake = rev.CANSparkMax(9, rev.CANSparkMax.MotorType.kBrushless)
+        # self.intake = rev.CANSparkMax(constants.CANIDs.intakeSpark, rev.CANSparkMax.MotorType.kBrushless)
 
         self.armRight.IdleMode(rev.CANSparkBase.IdleMode.kCoast)
         self.armLeft.IdleMode(rev.CANSparkBase.IdleMode.kCoast)
-        self.topShooter.IdleMode(rev.CANSparkBase.IdleMode.kCoast)
-        self.bottomShooter.IdleMode(rev.CANSparkBase.IdleMode.kCoast)
-        self.intake.IdleMode(rev.CANSparkBase.IdleMode.kBrake)
+        # self.topShooter.IdleMode(rev.CANSparkBase.IdleMode.kCoast)
+        # self.bottomShooter.IdleMode(rev.CANSparkBase.IdleMode.kCoast)
+        # self.intake.IdleMode(rev.CANSparkBase.IdleMode.kBrake)
 
         self.motorArmRightEncoder = self.armRight.getEncoder()
         self.motorArmLeftEncoder = self.armLeft.getEncoder()
-        self.topShooterEncoder = self.topShooter.getEncoder()
-        self.bottomShooterEncoder = self.bottomShooter.getEncoder()
-        self.intakeEncoder = self.intake.getEncoder()
+        # self.topShooterEncoder = self.topShooter.getEncoder()
+        # self.bottomShooterEncoder = self.bottomShooter.getEncoder()
+        # self.intakeEncoder = self.intake.getEncoder()
 
         self.armRightEncoder = wpilib.DutyCycleEncoder(5)
         self.armLeftEncoder = wpilib.DutyCycleEncoder(6)
@@ -44,7 +44,7 @@ class ArmSubsystem(commands2.Subsystem):
         self.armLeftEncoder.setPositionOffset(0.39403500985087525)
 
         # Photo Sensor to detect if a note is loaded
-        self.noteSensor = wpilib.DigitalInput(2) # change channel later
+        # self.noteSensor = wpilib.DigitalInput(2) # change channel later
 
         # bottom limit switch to detect if the arm is all the way down
         self.bottomLimit = wpilib.DigitalInput(1) # change channel later
@@ -137,22 +137,29 @@ class ArmSubsystem(commands2.Subsystem):
             so that as the arm gets closer to its final position the arm speed slows down
         """
 
+    '''
     def isNoteLoaded(self):
         return self.noteSensor.get()
-    
+    '''
+
+    '''
     def zeroEncoders(self):
         rightOffset = self.armRightEncoder.getAbsolutePosition()
         leftOffset = self.armLeftEncoder.getAbsolutePosition()
         self.armRightEncoder.setPositionOffset(rightOffset)
         self.armLeftEncoder.setPositionOffset(leftOffset)
         print(f"right encoder offset: {self.armRightEncoder.getPositionOffset()} | left encoder offset: {self.armLeftEncoder.getPositionOffset()}")
-
+    '''
+    
+    '''
     def zeroEncodersRelative(self):
         self.armRightEncoderRelative.reset()
         self.armLeftEncoderRelative.reset()
         self.motorArmLeftEncoder.setPosition(0.0)
         self.motorArmRightEncoder.setPosition(0.0)
+    '''
 
+    '''
     def getArmPositionRelative(self):
         """returns the arm's position in rad, averaged between the two encoders"""
         # posRight = constants.convert.rev2rad(constants.convert.count2rev(self.armRightEncoderRelative.get()))
@@ -161,31 +168,48 @@ class ArmSubsystem(commands2.Subsystem):
         # posLeft = self.motorArmLeftEncoder.getPosition()
         
         return posRight
+    '''
 
+    '''
     def getArmPosition(self):
         return constants.convert.rev2rad((self.getArmRightPosition() - self.getArmLeftPosition()) / 2)
+    '''
+
     
+    '''
     def getArmRightPosition(self):
         # return self.armRightEncoder.getAbsolutePosition() - self.armRightEncoder.getPositionOffset()
         return self.armRightEncoder.getAbsolutePosition() - self.armRightEncoder.getPositionOffset()
-    
+    '''
+
+    ''' 
     def getArmLeftPosition(self):
         return self.armLeftEncoder.getAbsolutePosition() - self.armLeftEncoder.getPositionOffset()
-    
+    '''
+        
+    ''' 
     def shooterIdle(self):
         self.intake.set(0.0)
         self.topShooter.set(0.0)
         self.bottomShooter.set(0.0)
     # todo make zeroEncoders method
+    '''
 
+    '''
     def intakeNote(self):
         self.intake.set(0.75)
+    '''
 
+    ''' 
     def OuttakeNote(self):
         self.intake.set(-0.75)
-
+    '''
+        
+    '''
     def pewpew(self):
-        self.shooters.set(-0.75)
+        self.shooters.set(-0.75)   
+    '''
+        
 
     def __str__(self):
         """To string for robot's arm"""

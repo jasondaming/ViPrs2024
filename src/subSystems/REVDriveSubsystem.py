@@ -3,15 +3,15 @@ import wpilib.drive
 import commands2
 import rev
 import constants
-
+ 
 class DriveSubsystem(commands2.Subsystem):
     def __init__(self):
         super().__init__()
-
-        self.leftFront = rev.CANSparkMax(4, rev.CANSparkMax.MotorType.kBrushless)
-        self.leftBack = rev.CANSparkMax(3, rev.CANSparkMax.MotorType.kBrushless)
-        self.rightFront = rev.CANSparkMax(2, rev.CANSparkMax.MotorType.kBrushless)
-        self.rightBack = rev.CANSparkMax(1, rev.CANSparkMax.MotorType.kBrushless)
+        
+        self.leftFront = rev.CANSparkMax(constants.CANIDs.leftDriveSparkFront, rev.CANSparkMax.MotorType.kBrushless)
+        self.leftBack = rev.CANSparkMax(constants.CANIDs.leftDriveSparkBack, rev.CANSparkMax.MotorType.kBrushless)
+        self.rightFront = rev.CANSparkMax(constants.CANIDs.rightDriveSparkFront, rev.CANSparkMax.MotorType.kBrushless)
+        self.rightBack = rev.CANSparkMax(constants.CANIDs.rightDriveSparkBack, rev.CANSparkMax.MotorType.kBrushless)
         
         self.leftFront.setIdleMode(rev.CANSparkBase.IdleMode.kBrake)
         self.leftBack.setIdleMode(rev.CANSparkBase.IdleMode.kBrake)
@@ -29,5 +29,7 @@ class DriveSubsystem(commands2.Subsystem):
         self.rightDrive.setInverted(True)
 
         self.leftFrontEncoder = self.leftFront.getEncoder()
+
+    
         
     
