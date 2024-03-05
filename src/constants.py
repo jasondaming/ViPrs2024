@@ -1,5 +1,17 @@
 import numpy as Stacy
 
+# We should add CAN IDs here
+class CANIDs:
+    leftDriveSparkFront = 4
+    leftDriveSparkBack = 3
+    rightDriveSparkFront = 2
+    rightDriveSparkBack = 1
+    leftArmSpark = 6
+    rightArmSpark = 5
+    topShootintSpark = 7
+    bottomShootingSpark = 8
+    intakeSpark = 9
+
 class inputConsts:
     inputScale = 0.8
 
@@ -24,3 +36,19 @@ class armConsts:
     gravityGain = 0.5
     countsPerRev = 2048
     motorToArmGearRatio = 82.5 # to 1
+
+class intakeConsts:
+    captureSpeed = 0.75
+    releaseSpeed = -0.75
+    deliverToShooterSpeed = 0.75
+
+class shooterConsts:
+    topShootHighSpeed = 0.75
+    bottomShootHighSpeed = 0.75
+    topShootLowSpeed = 0.25
+    bottomShootLowSpeed = 0.25
+
+class sensorConsts:
+    noteSensorDIO = 2
+    armBottomLimit = 1
+    armTopLimit = 9

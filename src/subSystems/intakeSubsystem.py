@@ -14,7 +14,13 @@ class IntakeSubsystem(commands2.Subsystem):
 
         self.intakeEncoder = self.intake.getEncoder() 
         
-        self.noteSensor = wpilib.DigitalInput(2) # change channel later
+        self.noteSensor = wpilib.DigitalInput(constants.sensorConsts.noteSensorDIO) # change channel later
+
+    def setIntakeSpeed(self, speed):
+        self.intake.set(speed)
+
+    def getIntakeEncoder(self):
+        return self.intakeEncoder.getVelocity()
 
     def __str__(self):
         print("IntakeSubsystem: ")

@@ -18,5 +18,10 @@ class ShooterSubsystem(commands2.Subsystem):
         self.topShooterEncoder = self.topShooter.getEncoder()
         self.bottomShooterEncoder = self.bottomShooter.getEncoder()
 
+
+    def idleShooter(self):
+        self.topShooter.set(0.0)
+        self.bottomShooter.set(0.0)
+
     def __str__(self):
         print("ShooterSubsystem: ")

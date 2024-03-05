@@ -47,8 +47,8 @@ class ArmSubsystem(commands2.Subsystem):
         # self.noteSensor = wpilib.DigitalInput(2) # change channel later
 
         # bottom limit switch to detect if the arm is all the way down
-        self.bottomLimit = wpilib.DigitalInput(1) # change channel later
-        self.topLimit = wpilib.DigitalInput(9)
+        self.bottomLimit = wpilib.DigitalInput(constants.sensorConsts.armBottomLimit) # change channel later
+        self.topLimit = wpilib.DigitalInput(constants.sensorConsts.armTopLimit)
 
         self.armTargetAngle = 0.0
         self.controlVoltage = 0.0
@@ -81,6 +81,7 @@ class ArmSubsystem(commands2.Subsystem):
             # print(self.controlVoltage)
             # self.arm.setVoltage(self.controlVoltage)
 
+    '''
     def shootHigh(self):
         pass
         """
@@ -110,7 +111,9 @@ class ArmSubsystem(commands2.Subsystem):
         self.intake.set(0)
         
         """
+    '''
 
+    '''
     def pickup(self):
         pass
         """
@@ -125,6 +128,7 @@ class ArmSubsystem(commands2.Subsystem):
         }
 
         """
+    '''
 
     def lowerArmForPickup():
         pass
