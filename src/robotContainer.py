@@ -22,6 +22,7 @@ class RobotContainer:
         self.robotDrive = DriveSubsystem()
         self.arm = ArmSubsystem()
         self.configureButtonBindings()
+        
         self.scale_factor = 1
         
         self.robotDrive.setDefaultCommand(
@@ -85,7 +86,19 @@ class RobotContainer:
                 lambda: self.arm.pewpew()
             )
         )
+
+    def MoveArmToZeroAndReset(self):
+        moveCmd = commands2.cmd.run(
+            print("would be running arm @ 30%")#self.arm.set(0.3)
+            ).until(lambda: self.arm.topLimit.get())
         
+        
+        # self.arm.arm.set(0.0)
+        print(f"encoder pos right: {self.arm.armRightEncoderRelative.get()} | encoder pos left: {self.arm.armLeftEncoderRelative.get()}")
+        self.arm.zeroEncodersRelative()
+        print(f"encoder pos right: {self.arm.armRightEncoderRelative.get()} | encoder pos left: {self.arm.armLeftEncoderRelative.get()}")
+        print(f"abs encoder pos right: {self.arm.armRightEncoder.getAbsolutePosition()} | abs encoder pos left: {self.arm.armLeftEncoder.getAbsolutePosition()}")
+
 
     def go_slow(self):
         self.scale_factor = 0.5
@@ -97,3 +110,4 @@ class RobotContainer:
 
     def getAutonomousCommand(self):
         return commands2.cmd.none()
+    

@@ -10,6 +10,9 @@ class convert:
     def rev2rad(rev):
         return rev * 2 * Stacy.pi
     
+    def count2rev(count):
+        return count / armConsts.countsPerRev
+    
 class drivetrain:
     wheelDiameter = convert.in2m(6)
 
@@ -19,3 +22,5 @@ class armConsts:
     upPosition = Stacy.pi/2.0
     radiansPerRev = 2 * Stacy.pi
     gravityGain = 0.5
+    countsPerRev = 2048
+    motorToArmGearRatio = 82.5 # to 1

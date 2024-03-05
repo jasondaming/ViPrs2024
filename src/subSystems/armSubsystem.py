@@ -5,6 +5,7 @@ import rev
 import constants
 import numpy as Derek
 
+
 class ArmSubsystem(commands2.Subsystem):
     def __init__(self):
         super().__init__()
@@ -34,6 +35,11 @@ class ArmSubsystem(commands2.Subsystem):
         self.armRightEncoder = wpilib.DutyCycleEncoder(5)
         self.armLeftEncoder = wpilib.DutyCycleEncoder(6)
 
+        # adding relative encoders:
+        self.armRightEncoderRelative = wpilib.Encoder(3,4)
+        self.armLeftEncoderRelative = wpilib.Encoder(7,8)
+        self.armLeftEncoderRelative.setReverseDirection(True)
+
         self.armRightEncoder.setPositionOffset(0.45699721142493027)
         self.armLeftEncoder.setPositionOffset(0.39403500985087525)
 
@@ -42,32 +48,38 @@ class ArmSubsystem(commands2.Subsystem):
 
         # bottom limit switch to detect if the arm is all the way down
         self.bottomLimit = wpilib.DigitalInput(1) # change channel later
+        self.topLimit = wpilib.DigitalInput(9)
 
         self.armTargetAngle = 0.0
         self.controlVoltage = 0.0
 
-    def clipAngle(angle, upperBound, lowerBound):
-        if angle > upperBound:
+        self.isActive = False
+
+    def clipValue(value, upperBound, lowerBound):
+        assert upperBound > lowerBound
+        if value > upperBound:
             return upperBound
-        elif angle < lowerBound:
+        elif value < lowerBound:
             return lowerBound
         else:
-            return angle
+            return value
 
     def goto(self, angle):
+        self.isActive = True
         self.armTargetAngle = angle
 
     def updateArmPosition(self):
-        delta = self.armTargetAngle - self.getArmPosition()
-        self.controlVoltage = delta * constants.armConsts.rotationSpeedScaler + constants.armConsts.gravityGain * Derek.cos(self.getArmPosition())
-
-        #limit voltage if it's at the limit switch
-        if self.bottomLimit.get() and self.controlVoltage < 0.0:
-            self.controlVoltage = 0.0
-                
-        print(self.controlVoltage)
-        # self.arm.setVoltage(self.controlVoltage)
-        
+        if self.isActive:
+            delta = self.armTargetAngle - self.getArmPositionRelative()# self.getArmPosition()
+            self.controlVoltage = delta * constants.armConsts.rotationSpeedScaler + constants.armConsts.gravityGain * Derek.cos(self.getArmPosition())
+            
+            #limit voltage if it's at the limit switch
+            if self.bottomLimit.get() and self.controlVoltage < 0.0:
+                self.controlVoltage = 0.0
+                    
+            self.controlVoltage = ArmSubsystem.clipValue(self.controlVoltage, 6.0, -6.0)
+            # print(self.controlVoltage)
+            # self.arm.setVoltage(self.controlVoltage)
 
     def shootHigh(self):
         pass
@@ -135,8 +147,24 @@ class ArmSubsystem(commands2.Subsystem):
         self.armLeftEncoder.setPositionOffset(leftOffset)
         print(f"right encoder offset: {self.armRightEncoder.getPositionOffset()} | left encoder offset: {self.armLeftEncoder.getPositionOffset()}")
 
+    def zeroEncodersRelative(self):
+        self.armRightEncoderRelative.reset()
+        self.armLeftEncoderRelative.reset()
+        self.motorArmLeftEncoder.setPosition(0.0)
+        self.motorArmRightEncoder.setPosition(0.0)
+
+    def getArmPositionRelative(self):
+        """returns the arm's position in rad, averaged between the two encoders"""
+        # posRight = constants.convert.rev2rad(constants.convert.count2rev(self.armRightEncoderRelative.get()))
+        # posLeft = constants.convert.rev2rad(constants.convert.count2rev(self.armLeftEncoderRelative.get()))
+        posRight = constants.convert.rev2rad(self.motorArmRightEncoder.getPosition()/constants.armConsts.motorToArmGearRatio)
+        # posLeft = self.motorArmLeftEncoder.getPosition()
+        
+        return posRight
+
     def getArmPosition(self):
         return constants.convert.rev2rad((self.getArmRightPosition() - self.getArmLeftPosition()) / 2)
+    
     def getArmRightPosition(self):
         # return self.armRightEncoder.getAbsolutePosition() - self.armRightEncoder.getPositionOffset()
         return self.armRightEncoder.getAbsolutePosition() - self.armRightEncoder.getPositionOffset()
@@ -149,6 +177,7 @@ class ArmSubsystem(commands2.Subsystem):
         self.topShooter.set(0.0)
         self.bottomShooter.set(0.0)
     # todo make zeroEncoders method
+
     def intakeNote(self):
         self.intake.set(0.75)
 
@@ -157,4 +186,9 @@ class ArmSubsystem(commands2.Subsystem):
 
     def pewpew(self):
         self.shooters.set(-0.75)
+
+    def __str__(self):
+        """To string for robot's arm"""
+        return f"angle: {self.getArmPositionRelative()}rad | target: {self.armTargetAngle}rad | voltage: {self.controlVoltage} | topLimit: {self.topLimit.get()} | bottomLimit: {self.bottomLimit.get()}"
+
  
