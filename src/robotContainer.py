@@ -73,19 +73,19 @@ class RobotContainer:
 
         self.driverControler.x().whileTrue(
             commands2.cmd.run(
-                lambda: self.arm.intakeNote()
+                lambda: self.arm.pickup()
             )
         )
         self.driverControler.y().whileTrue(
             commands2.cmd.run(
-                lambda: self.arm.OuttakeNote()
+                lambda: self.arm.intakeOveride()
             )
         )
-        self.driverControler.rightTrigger().whileTrue(
-            commands2.cmd.run(
-                lambda: self.arm.pewpew()
-            )
-        )
+        # self.driverControler.rightTrigger().whileTrue(
+        #     commands2.cmd.run(
+        #         lambda: self.arm.pewpew()
+        #     )
+        # )
 
     def MoveArmToZeroAndReset(self):
         moveCmd = commands2.cmd.run(

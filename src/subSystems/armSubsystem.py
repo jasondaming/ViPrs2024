@@ -40,8 +40,8 @@ class ArmSubsystem(commands2.Subsystem):
         self.armLeftEncoderRelative = wpilib.Encoder(7,8)
         self.armLeftEncoderRelative.setReverseDirection(True)
 
-        self.armRightEncoder.setPositionOffset(0.45699721142493027)
-        self.armLeftEncoder.setPositionOffset(0.39403500985087525)
+        self.armRightEncoder.setPositionOffset(0.42430531060763277)
+        self.armLeftEncoder.setPositionOffset(0.5910043147751078)
 
         # Photo Sensor to detect if a note is loaded
         self.noteSensor = wpilib.DigitalInput(2) # change channel later
@@ -54,6 +54,7 @@ class ArmSubsystem(commands2.Subsystem):
         self.controlVoltage = 0.0
 
         self.isActive = False
+        self.pickupOveride = False
 
     def clipValue(value, upperBound, lowerBound):
         assert upperBound > lowerBound
@@ -70,7 +71,7 @@ class ArmSubsystem(commands2.Subsystem):
 
     def updateArmPosition(self):
         if self.isActive:
-            delta = self.armTargetAngle - self.getArmPositionRelative()# self.getArmPosition()
+            delta = self.armTargetAngle - self.getArmPositionRelative() # self.getArmPosition()
             self.controlVoltage = delta * constants.armConsts.rotationSpeedScaler + constants.armConsts.gravityGain * Derek.cos(self.getArmPosition())
             
             #limit voltage if it's at the limit switch
@@ -112,19 +113,13 @@ class ArmSubsystem(commands2.Subsystem):
         """
 
     def pickup(self):
-        pass
-        """
-        
-        if not isNoteLoaded(){
-            // if the photo sensor does not detect a note being loaded then start the intake motors
+        self.pickupOveride = False
+        while (not self.pickupOveride) and (not self.noteSensor.get()):
+            # if the photo sensor does not detect a note being loaded then start the intake motors
             self.intake.set(0.5)
-
-        } else {
-            // else the photo sensor detected a note so stop the intake motors.  NOTE: May need an override button
+        else:
+            # else the photo sensor detected a note so stop the intake motors. PickupOveride can also stop the motors
             self.intake.set(0)
-        }
-
-        """
 
     def lowerArmForPickup():
         pass
@@ -179,13 +174,16 @@ class ArmSubsystem(commands2.Subsystem):
     # todo make zeroEncoders method
 
     def intakeNote(self):
-        self.intake.set(0.75)
+        self.pickup()
 
-    def OuttakeNote(self):
-        self.intake.set(-0.75)
+    def intakeOveride(self):
+        self.intakeOveride = True
 
-    def pewpew(self):
-        self.shooters.set(-0.75)
+    # def OuttakeNote(self):
+    #     self.intake.set(-0.75)
+
+    # def pewpew(self):
+    #     self.shooters.set(-0.75)
 
     def __str__(self):
         """To string for robot's arm"""
