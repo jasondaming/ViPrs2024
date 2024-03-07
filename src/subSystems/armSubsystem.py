@@ -61,7 +61,7 @@ class ArmSubsystem(commands2.Subsystem):
 
     def updateArmPosition(self):
         if self.isActive:
-            delta = self.armTargetAngle - self.getArmPositionRelative()# self.getArmPosition()
+            # delta = self.armTargetAngle - self.getArmPositionRelative()# self.getArmPosition()
             self.controlVoltage = delta * constants.armConsts.rotationSpeedScaler + constants.armConsts.gravityGain * Derek.cos(self.getArmPosition())
             
             #limit voltage if it's at the limit switch
@@ -71,6 +71,33 @@ class ArmSubsystem(commands2.Subsystem):
             self.controlVoltage = ArmSubsystem.clipValue(self.controlVoltage, 6.0, -6.0)
             # print(self.controlVoltage)
             # self.arm.setVoltage(self.controlVoltage)
+
+
+    '''
+    In the documentation it states this:
+
+    GetAbsolutePosition() - GetPositionOffset() will give an encoder absolute position 
+    relative to the last reset. This could potentially be negative, which needs to be 
+    accounted for.
+
+    Should we return the absolute value of the result?
+    '''
+    def getArmRightPosition(self):
+        return self.armRightEncoder.getAbsolutePosition() - self.armRightEncoder.getPositionOffset()
+
+    def getArmLeftPosition(self):
+        return self.armLeftEncoder.getAbsolutePosition() - self.armLeftEncoder.getPositionOffset()
+    
+    def zeroEncoders(self):
+        rightOffset = self.armRightEncoder.getAbsolutePosition()
+        leftOffset = self.armLeftEncoder.getAbsolutePosition()
+        self.armRightEncoder.setPositionOffset(rightOffset)
+        self.armLeftEncoder.setPositionOffset(leftOffset)
+        print(f"right encoder offset: {self.armRightEncoder.getPositionOffset()} | left encoder offset: {self.armLeftEncoder.getPositionOffset()}")
+    
+    def getArmPosition(self):
+        return constants.convert.rev2rad((self.getArmRightPosition() - self.getArmLeftPosition()) / 2)
+    
 
     '''
     def shootHigh(self):
@@ -121,6 +148,7 @@ class ArmSubsystem(commands2.Subsystem):
         """
     '''
 
+    '''
     def lowerArmForPickup():
         pass
         """
@@ -131,20 +159,14 @@ class ArmSubsystem(commands2.Subsystem):
         NOTE: one idea was to scale the arm speed by the delta angle (angle between starting position and current position)
             so that as the arm gets closer to its final position the arm speed slows down
         """
-
+    '''
+        
     '''
     def isNoteLoaded(self):
         return self.noteSensor.get()
     '''
 
-    '''
-    def zeroEncoders(self):
-        rightOffset = self.armRightEncoder.getAbsolutePosition()
-        leftOffset = self.armLeftEncoder.getAbsolutePosition()
-        self.armRightEncoder.setPositionOffset(rightOffset)
-        self.armLeftEncoder.setPositionOffset(leftOffset)
-        print(f"right encoder offset: {self.armRightEncoder.getPositionOffset()} | left encoder offset: {self.armLeftEncoder.getPositionOffset()}")
-    '''
+
     
     '''
     def zeroEncodersRelative(self):
@@ -165,22 +187,9 @@ class ArmSubsystem(commands2.Subsystem):
         return posRight
     '''
 
-    '''
-    def getArmPosition(self):
-        return constants.convert.rev2rad((self.getArmRightPosition() - self.getArmLeftPosition()) / 2)
-    '''
 
-    
-    '''
-    def getArmRightPosition(self):
-        # return self.armRightEncoder.getAbsolutePosition() - self.armRightEncoder.getPositionOffset()
-        return self.armRightEncoder.getAbsolutePosition() - self.armRightEncoder.getPositionOffset()
-    '''
 
-    ''' 
-    def getArmLeftPosition(self):
-        return self.armLeftEncoder.getAbsolutePosition() - self.armLeftEncoder.getPositionOffset()
-    '''
+
         
     ''' 
     def shooterIdle(self):
@@ -208,6 +217,7 @@ class ArmSubsystem(commands2.Subsystem):
 
     def __str__(self):
         """To string for robot's arm"""
-        return f"angle: {self.getArmPositionRelative()}rad | target: {self.armTargetAngle}rad | voltage: {self.controlVoltage} | topLimit: {self.topLimit.get()} | bottomLimit: {self.bottomLimit.get()}"
+        # return f"angle: {self.getArmPositionRelative()}rad | target: {self.armTargetAngle}rad | voltage: {self.controlVoltage} | topLimit: {self.topLimit.get()} | bottomLimit: {self.bottomLimit.get()}"
+        return f"armSubsystem : angle: {self.getArmPosition()} rad"
 
  

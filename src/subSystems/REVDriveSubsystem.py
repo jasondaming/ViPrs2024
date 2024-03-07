@@ -2,11 +2,15 @@ import wpilib
 import wpilib.drive
 import commands2
 import rev
+import navx
 import constants
+
  
 class DriveSubsystem(commands2.Subsystem):
     def __init__(self):
         super().__init__()
+
+        self.gyroAccl = navx.AHRS(wpilib.SPI.Port.kMXP)
         
         self.leftFront = rev.CANSparkMax(constants.CANIDs.leftDriveSparkFront, rev.CANSparkMax.MotorType.kBrushless)
         self.leftBack = rev.CANSparkMax(constants.CANIDs.leftDriveSparkBack, rev.CANSparkMax.MotorType.kBrushless)
@@ -29,6 +33,16 @@ class DriveSubsystem(commands2.Subsystem):
         self.rightDrive.setInverted(True)
 
         self.leftFrontEncoder = self.leftFront.getEncoder()
+
+    def setMaxOutput(self, maxOutput: float):
+        """
+        Sets the max output of the drive. Useful for scaling the drive to drive more slowly.
+
+        :param maxOutput: the maximum output to which the drive will be constrained
+        """
+        self.robotDrive.setMaxOutput = maxOutput
+
+    
 
     
         

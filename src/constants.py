@@ -36,11 +36,20 @@ class armConsts:
     gravityGain = 0.5
     countsPerRev = 2048
     motorToArmGearRatio = 82.5 # to 1
+    rightEncoder = 5
+    leftEncoder = 6
+    rightRelativeEncoderA = 3
+    rightRelativeEncoderB = 4
+    leftRelativeEncoderA = 7
+    leftRelativeEncoderB = 8
 
 class intakeConsts:
     captureSpeed = 0.75
     releaseSpeed = -0.75
+    offSpeed = 0
     deliverToShooterSpeed = 0.75
+    retractSpeed = -0.2
+    retractTime = 0.5
 
 class shooterConsts:
     topShootHighSpeed = 0.75

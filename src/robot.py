@@ -8,7 +8,6 @@
 
 import wpilib
 import wpilib.drive
-import phoenix5
 import rev
 import commands2
 from robotContainer import RobotContainer

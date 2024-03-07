@@ -5,6 +5,10 @@ import numpy as DrArnett
 
 from subSystems.REVDriveSubsystem import DriveSubsystem
 from subSystems.armSubsystem import ArmSubsystem
+from subSystems.intakeSubsystem import IntakeSubsystem
+from subSystems.shooterSubsystem import ShooterSubsystem
+from commands.intakeCollectNoteCmd import IntakeCollectNoteCmd
+from commands.intakeRetractNoteCmd import IntakeRetractNoteCmd
 
 import constants
 
@@ -18,21 +22,31 @@ def shapeInputs(input, scale_factor):
 class RobotContainer:
     
     def __init__(self):
-        self.driverControler = commands2.button.CommandXboxController(0)
+        self.driverController = commands2.button.CommandXboxController(0)
         self.robotDrive = DriveSubsystem()
         self.arm = ArmSubsystem()
+        self.intake = IntakeSubsystem()
+        self.shooter = ShooterSubsystem()
         self.configureButtonBindings()
         
         self.scale_factor = 1
+
+        collectCmd = IntakeCollectNoteCmd(intakeSubsystem, constants.captureSpeed)
+        retractCmd = IntakeRetractNoteCmd(intakeSubsystem, -0.5, 0.5)  # Example values for retract speed and time
         
+        # Sequential command group that combines collecting and retracting
+        collectAndRetractCmd = SequentialCommandGroup(collectCmd, retractCmd)
+
+        
+
         self.robotDrive.setDefaultCommand(
             commands2.cmd.run(
                 lambda: self.robotDrive.robotDrive.arcadeDrive(
                     shapeInputs(
-                        -self.driverControler.getLeftY(), self.scale_factor
+                        -self.driverController.getLeftY(), self.scale_factor
                     ),
                     shapeInputs(
-                        -self.driverControler.getRightX(), self.scale_factor
+                        -self.driverController.getRightX(), self.scale_factor
                     )
                 ),
                 self.robotDrive
@@ -40,14 +54,19 @@ class RobotContainer:
             commands2.cmd.run(
                     lambda: self.arm.updateArmPosition()
                 )
-            ).alongWith(
-                commands2.cmd.run(
-                    lambda: self.arm.shooterIdle()
-                )
             )
-            
         )
+        '''.alongWith(
+            commands2.cmd.run(
+                lambda: self.arm.shooterIdle()
+            )
+        )'''
+            
+    def configureButtonBindings(self):
+        # Bind the command group to the A button
+        self.driverController.aButton.whenPressed(collectAndRetractCmd)
 
+"""
     def configureButtonBindings(self):
         self.driverControler.rightBumper().whileTrue(
             commands2.cmd.run(
@@ -86,7 +105,9 @@ class RobotContainer:
                 lambda: self.arm.pewpew()
             )
         )
+"""
 
+"""
     def MoveArmToZeroAndReset(self):
         moveCmd = commands2.cmd.run(
             print("would be running arm @ 30%")#self.arm.set(0.3)
@@ -111,3 +132,4 @@ class RobotContainer:
     def getAutonomousCommand(self):
         return commands2.cmd.none()
     
+"""
