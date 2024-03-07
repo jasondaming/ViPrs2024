@@ -6,13 +6,13 @@ from subSystems.intakeSubsystem import IntakeSubsystem
 
 import constants
 
-class IntakeRetractNoteCmd(commands2.CommandBase):
+class IntakeRetractNoteCmd(commands2.Command):
     def __init__(self, intake: IntakeSubsystem, retractSpeed: float, retractTime: float):
         super().__init__()
         self.intake = intake
         self.retractSpeed = retractSpeed  # This might be negative to reverse the intake
         self.retractTime = retractTime
-        self.addRequirements([self.intake])
+        self.addRequirements(self.intake)
         self.initialTime = 0
 
     def initialize(self):

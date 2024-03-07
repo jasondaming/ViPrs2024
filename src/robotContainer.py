@@ -1,8 +1,10 @@
-import commands2
+
 import commands2.button
 import commands2.cmd
 import numpy as DrArnett
 
+from commands2 import SequentialCommandGroup
+from commands2.button import CommandXboxController
 from subSystems.REVDriveSubsystem import DriveSubsystem
 from subSystems.armSubsystem import ArmSubsystem
 from subSystems.intakeSubsystem import IntakeSubsystem
@@ -23,21 +25,21 @@ class RobotContainer:
     
     def __init__(self):
         self.driverController = commands2.button.CommandXboxController(0)
+
+        # Subsystem inits
         self.robotDrive = DriveSubsystem()
         self.arm = ArmSubsystem()
         self.intake = IntakeSubsystem()
         self.shooter = ShooterSubsystem()
+
+        # Command inits
+        self.collectCmd = IntakeCollectNoteCmd(self.intake, constants.intakeConsts.captureSpeed)
+        self.retractCmd = IntakeRetractNoteCmd(self.intake, -0.5, 0.5)  # Example values for retract speed and time
+        self.collectAndRetractCmd = SequentialCommandGroup(self.collectCmd, self.retractCmd)
+
         self.configureButtonBindings()
         
         self.scale_factor = 1
-
-        collectCmd = IntakeCollectNoteCmd(intakeSubsystem, constants.captureSpeed)
-        retractCmd = IntakeRetractNoteCmd(intakeSubsystem, -0.5, 0.5)  # Example values for retract speed and time
-        
-        # Sequential command group that combines collecting and retracting
-        collectAndRetractCmd = SequentialCommandGroup(collectCmd, retractCmd)
-
-        
 
         self.robotDrive.setDefaultCommand(
             commands2.cmd.run(
@@ -63,8 +65,11 @@ class RobotContainer:
         )'''
             
     def configureButtonBindings(self):
+        
+        
         # Bind the command group to the A button
-        self.driverController.aButton.whenPressed(collectAndRetractCmd)
+        # self.driverController.a.whenPressed(collectAndRetractCmd)
+        self.driverController.a().onTrue(self.collectAndRetractCmd)
 
 """
     def configureButtonBindings(self):

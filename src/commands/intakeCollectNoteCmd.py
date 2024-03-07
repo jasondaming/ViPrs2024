@@ -6,48 +6,24 @@ from subSystems.intakeSubsystem import IntakeSubsystem
 
 import constants
 
-class IntakeCollectNoteCmd(CommandBase):
+class IntakeCollectNoteCmd(commands2.Command):
     def __init__(self, intake: IntakeSubsystem, targetSpeed: float):
+        #print(f"IntakeCollectNoteCmd.__init__({intake}, {targetSpeed})")
         super().__init__()
         self.intake = intake
         self.targetSpeed = targetSpeed
-        self.addRequirements([self.intake])
+        self.addRequirements(self.intake)
 
     def execute(self):
+        #print("IntakeCollectNoteCmd.execute()")
         self.intake.setIntakeSpeed(self.targetSpeed)
 
     def isFinished(self):
+        #print("IntakeCollectNoteCmd.isFinsihed()")
         # Assume hasGamePiece() returns True when the note is detected
         return self.intake.hasGamePiece()
 
     def end(self, interrupted):
+        #print(f"IntakeCollectNoteCmd.end({interrupted})")
         # Optionally, stop the intake here or leave it for the retract command
         self.intake.setIntakeSpeed(0)
-
-
-"""
-### IntakeCollectNoteCmd
-**Parameters:**
-targetSpeed: (float) Target speed to spin the intake system at. Defaults to the constant captureSpeed
-intake: (IntakeSubsystem)  Reference to the IntakeSubsystem
-
-**Description:**
-This command runs the intake until it detects a captured note.
-"""
-"""
-class IntakeCollectNoteCmd(commands2.CommandBase):
-    #A command that will be used when collecting notes from the ground
-
-    def __init__(self, targetSpeed = constants.intakeConsts.captureSpeed: float, intake: IntakeSubsystem) -> None:
-        #Turns the intake to the specified speed
-        
-        #:param: targetSpeed the speed to set the intake to
-        #:param: intake The intake subsystem
-        
-    
-        super().__init__()
-
-        self.subsystem = IntakeSubsystem
-        self.setpoint = targetSpeed 
-    
-"""

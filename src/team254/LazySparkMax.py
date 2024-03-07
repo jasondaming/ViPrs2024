@@ -1,7 +1,7 @@
 from rev import CANSparkMax
 
 """
-This class is a thin wrapper around the CANTalon that reduces CAN bus / CPU
+This class is a thin wrapper around the CanSparkMax that reduces CAN bus / CPU
 overhead by skipping duplicate set commands.
 """
 
@@ -11,6 +11,7 @@ class LazySparkMax(CANSparkMax):
         self.m_last_set = float('nan')
         self.m_last_control_type = None
         self.m_leader = None
+        self._pid_controller = None  # Cache the PID controller instance
 
     @property
     def leader(self):
@@ -24,4 +25,7 @@ class LazySparkMax(CANSparkMax):
         if setpoint != self.m_last_set or type != self.m_last_control_type:
             self.m_last_set = setpoint
             self.m_last_control_type = type
-            super().getPIDController().setReference(setpoint, type)
+            # Use the cached PID controller instance
+            if self._pid_controller is None:
+                self._pid_controller = super().getPIDController()
+            self._pid_controller.setReference(setpoint, type)
