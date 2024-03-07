@@ -63,7 +63,7 @@ class RobotContainer:
 
         self.driverControler.a().whileTrue(
             commands2.cmd.run(
-                lambda: self.arm.goto(0.1)
+                lambda: self.arm.goto(0.4)
             )
         ).whileFalse(
             commands2.cmd.run(

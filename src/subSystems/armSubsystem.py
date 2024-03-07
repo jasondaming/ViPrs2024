@@ -66,21 +66,39 @@ class ArmSubsystem(commands2.Subsystem):
             return value
 
     def goto(self, angle):
-        self.isActive = True
+        self.activate()
         self.armTargetAngle = angle
+
+    def activate(self):
+        self.isActive = True
+        self.armRight.setIdleMode(rev.CANSparkBase.IdleMode.kCoast)
+        self.armLeft.setIdleMode(rev.CANSparkBase.IdleMode.kCoast)
+
+    def deactivate(self):
+        self.isActive = False
+        self.armRight.setIdleMode(rev.CANSparkBase.IdleMode.kCoast)
+        self.armLeft.setIdleMode(rev.CANSparkBase.IdleMode.kCoast)
+
+    def getArmVelocity(self):
+        return constants.convert.rev2rad((self.motorArmLeftEncoder.getVelocity() - self.motorArmRightEncoder.getVelocity()))/constants.armConsts.motorToArmGearRatio
 
     def updateArmPosition(self):
         if self.isActive:
-            delta = self.armTargetAngle - self.getArmPositionRelative() # self.getArmPosition()
-            self.controlVoltage = delta * constants.armConsts.rotationSpeedScaler + constants.armConsts.gravityGain * Derek.cos(self.getArmPosition())
+            delta = self.armTargetAngle - self.getArmPosition() # self.getArmPosition()
+            # DampingVoltage = -self.getArmVelocity()*constants.armConsts.dampingConstant
+            P_voltage = delta * constants.armConsts.rotationSpeedScaler
+            gravity_feedforward_voltage = constants.armConsts.gravityGain * Derek.cos(self.getArmPosition())
+            self.controlVoltage = P_voltage + gravity_feedforward_voltage
             
             #limit voltage if it's at the limit switch
             if self.bottomLimit.get() and self.controlVoltage < 0.0:
                 self.controlVoltage = 0.0
+            elif self.topLimit.get() and self.controlVoltage > 0.0:
+                self.controlVoltage = 0.0
                     
-            self.controlVoltage = ArmSubsystem.clipValue(self.controlVoltage, 6.0, -6.0)
+            self.controlVoltage = ArmSubsystem.clipValue(self.controlVoltage, 2.0, -2.0)
             # print(self.controlVoltage)
-            # self.arm.setVoltage(self.controlVoltage)
+            self.arm.setVoltage(self.controlVoltage)
 
     def shootHigh(self):
         pass

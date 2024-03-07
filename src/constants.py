@@ -17,10 +17,15 @@ class drivetrain:
     wheelDiameter = convert.in2m(6)
 
 class armConsts:
-    rotationSpeedScaler = 3 # 0.5
+    rotationSpeedScaler = 6 # 0.5
     downPosition = 0.0
     upPosition = Stacy.pi/2.0
     radiansPerRev = 2 * Stacy.pi
-    gravityGain = 0.5
+    gravityGain = 0.75
     countsPerRev = 2048
     motorToArmGearRatio = 82.5 # to 1
+    intakeAngle = 0.0 # radians
+    speakerAngle = 0.4 # radians
+    ampAngle = 1.5 # radians
+    dampingConstant = 1
+

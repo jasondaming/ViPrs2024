@@ -56,7 +56,8 @@ class MyRobot(commands2.TimedCommandRobot):
         
     def teleopPeriodic(self):
         """This function is called periodically during teleoperated mode."""
-        print(self.container.arm.getArmPosition())  # check to see if they are zero'd
+        # print(self.container.arm.getArmPosition())  # check to see if they are zero'd
+        print(self.container.arm)
 
     def testInit(self): 
         """This function is called once each time the robot enters test mode."""
