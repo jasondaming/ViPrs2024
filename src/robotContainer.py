@@ -37,6 +37,8 @@ class RobotContainer:
         self.retractCmd = IntakeRetractNoteCmd(self.intake, -0.5, 0.5)  # Example values for retract speed and time
         self.collectAndRetractCmd = SequentialCommandGroup(self.collectCmd, self.retractCmd)
 
+        # C
+
         self.configureButtonBindings()
         
         self.scale_factor = 1
@@ -70,6 +72,9 @@ class RobotContainer:
         # Bind the command group to the A button
         # self.driverController.a.whenPressed(collectAndRetractCmd)
         self.driverController.a().onTrue(self.collectAndRetractCmd)
+
+    def getAutonomousCommand(self):
+        return commands2.cmd.none()
 
 """
     def configureButtonBindings(self):
@@ -134,7 +139,6 @@ class RobotContainer:
         self.scale_factor = 1
         print(self.scale_factor)
 
-    def getAutonomousCommand(self):
-        return commands2.cmd.none()
+    
     
 """

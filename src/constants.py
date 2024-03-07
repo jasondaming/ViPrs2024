@@ -1,4 +1,5 @@
 import numpy as Stacy
+from enum import Enum, auto
 
 # We should add CAN IDs here
 class CANIDs:
@@ -61,3 +62,26 @@ class sensorConsts:
     noteSensorDIO = 2
     armBottomLimit = 1
     armTopLimit = 9
+
+class States(Enum):
+        # Define general states that might apply to various subsystems or the robot in general
+        IDLE = auto()
+        COLLECTING = auto()
+        SHOOTING = auto()
+        MOVING = auto()
+        # etc.
+        
+        # You can also define specific states for each subsystem if needed
+        INTAKE_COLLECTING = auto()
+        INTAKE_IDLE = auto()
+        INTAKE_RETRACTING = auto()
+        INTAKE_UNJAM = auto()
+        INTAKE_EJECTING = auto()
+        SHOOTER_PREPPING = auto()
+        SHOOTER_FIRING = auto()
+        SHOOTER_IDLE = auto()
+        ARM_COLLECTING = auto()
+        ARM_SCORING_LOW = auto()
+        ARM_SCORING_HIGH = auto()
+        ARM_IDLE = auto()
+        ARM_START_STATE = auto()
