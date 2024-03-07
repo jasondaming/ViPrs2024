@@ -85,7 +85,14 @@ class ArmSubsystem(commands2.Subsystem):
     def updateArmPosition(self):
         if self.isActive:
             delta = self.armTargetAngle - self.getArmPosition() # self.getArmPosition()
-            # DampingVoltage = -self.getArmVelocity()*constants.armConsts.dampingConstant
+            """If we want the arm to move smoothly and precicesly, we need this:
+            https://robotpy.readthedocs.io/projects/rev/en/stable/rev/SparkMaxPIDController.html
+            starting with the P gain being our "rotationSpeedScalar" and feedforward gain being 
+            gravityGain * cos(angle) should be similar behavior to what we have now.
+            Then we can play with the accel profile & D gain to slow down the initial speed,
+            and we can play with the I gain to increase the precision of the final angle.
+            
+            """
             P_voltage = delta * constants.armConsts.rotationSpeedScaler
             gravity_feedforward_voltage = constants.armConsts.gravityGain * Derek.cos(self.getArmPosition())
             self.controlVoltage = P_voltage + gravity_feedforward_voltage
