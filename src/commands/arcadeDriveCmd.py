@@ -12,9 +12,10 @@ import constants
 class ArcadeDriveCommand(commands2.Command):
     def __init__(self, driveSubsystem: DriveSubsystem, driverController: CommandXboxController):
         super().__init__()
+        print(f"ArcadeDriveCommand: DriveSubsystem = {driveSubsystem}")
         self.driveSubsystem = driveSubsystem
         self.driverController = driverController
-        self.addRequirements([self.driveSubsystem])
+        self.addRequirements(self.driveSubsystem)
         
     def execute(self):
         forward = -self.driverController.getLeftY()
@@ -23,4 +24,4 @@ class ArcadeDriveCommand(commands2.Command):
         # Apply input shaping if necessary
         forward = InputShaping.shapeInputs(forward, inputConsts.inputScale)  # Adjust scale factor as needed
         rotation = InputShaping.shapeInputs(rotation, inputConsts.inputScale)  # Adjust scale factor as needed
-        self.driveSubsystem.arcadeDrive(forward, rotation)
+        self.driveSubsystem.arcadeDriveSS(forward, rotation)

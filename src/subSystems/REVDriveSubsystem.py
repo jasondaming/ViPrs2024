@@ -42,6 +42,9 @@ class DriveSubsystem(commands2.Subsystem):
         """
         self.robotDrive.setMaxOutput = maxOutput
 
+    def arcadeDriveSS(self, forward, rotation):
+        self.robotDrive.arcadeDrive(forward, rotation)
+
     
 
     
