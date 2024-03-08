@@ -3,6 +3,7 @@ import commands2.button
 import commands2.cmd
 import numpy as DrArnett
 
+
 from commands2 import SequentialCommandGroup
 from commands2.button import CommandXboxController
 from subSystems.REVDriveSubsystem import DriveSubsystem
@@ -11,19 +12,24 @@ from subSystems.intakeSubsystem import IntakeSubsystem
 from subSystems.shooterSubsystem import ShooterSubsystem
 from commands.intakeCollectNoteCmd import IntakeCollectNoteCmd
 from commands.intakeRetractNoteCmd import IntakeRetractNoteCmd
+from commands.arcadeDriveCmd import ArcadeDriveCommand
+from constants import States, intakeConsts, inputConsts
+from subSystems.robotState import RobotState
 
-import constants
-
+'''
 def shapeInputs(input, scale_factor):
     def y1(x):
         return (DrArnett.sin((x * DrArnett.pi) - (DrArnett.pi / 2)) / 2) + 0.5
     def y2(x):
         return (DrArnett.sin((x * DrArnett.pi) - (DrArnett.pi / 2)) / -2) - 0.5
-    return (y1(input) * int(input >= 0) * (input <= 1) + y2(input) * (input >= -1) * (input <= 0)) * scale_factor * constants.inputConsts.inputScale
+    return (y1(input) * int(input >= 0) * (input <= 1) + y2(input) * (input >= -1) * (input <= 0)) * scale_factor * inputConsts.inputScale
+'''
 
 class RobotContainer:
     
     def __init__(self):
+        self.robotState = RobotState()
+
         self.driverController = commands2.button.CommandXboxController(0)
 
         # Subsystem inits
@@ -33,16 +39,17 @@ class RobotContainer:
         self.shooter = ShooterSubsystem()
 
         # Command inits
-        self.collectCmd = IntakeCollectNoteCmd(self.intake, constants.intakeConsts.captureSpeed)
+        self.collectCmd = IntakeCollectNoteCmd(self.intake, intakeConsts.captureSpeed)
         self.retractCmd = IntakeRetractNoteCmd(self.intake, -0.5, 0.5)  # Example values for retract speed and time
         self.collectAndRetractCmd = SequentialCommandGroup(self.collectCmd, self.retractCmd)
+        self.arcadeDriveCmd = ArcadeDriveCommand(self.robotDrive, self.driverController)
 
-        # C
-
+        # Configure buttons
         self.configureButtonBindings()
         
-        self.scale_factor = 1
+        self.robotDrive.setDefaultCommand(self.arcadeDriveCmd)
 
+        '''
         self.robotDrive.setDefaultCommand(
             commands2.cmd.run(
                 lambda: self.robotDrive.robotDrive.arcadeDrive(
@@ -60,18 +67,31 @@ class RobotContainer:
                 )
             )
         )
+        '''
         '''.alongWith(
             commands2.cmd.run(
                 lambda: self.arm.shooterIdle()
             )
         )'''
-            
+
+    def toggleIntakeCommand(self):
+        # Check the current state of the intake and toggle accordingly
+        if self.robotState.get('intake') != States.INTAKE_COLLECTING:
+            # If not currently collecting, start collecting
+            self.robotState.setSubsystemState('intake', States.INTAKE_COLLECTING)
+            self.collectAndRetractCmd.schedule()
+        else:
+            # If already collecting, cancel and set to idle
+            self.robotState.setSubsystemState('intake', States.INTAKE_IDLE)
+            self.collectAndRetractCmd.cancel()
+
     def configureButtonBindings(self):
-        
-        
         # Bind the command group to the A button
         # self.driverController.a.whenPressed(collectAndRetractCmd)
-        self.driverController.a().onTrue(self.collectAndRetractCmd)
+        #self.driverController.a().onTrue(self.collectAndRetractCmd)
+
+        # Bind the toggleIntakeCommand method to the A button press
+        self.driverController.a().whenPressed(self.toggleIntakeCommand)
 
     def getAutonomousCommand(self):
         return commands2.cmd.none()

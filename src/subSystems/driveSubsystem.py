@@ -26,3 +26,6 @@ class DriveSubsystem(commands2.Subsystem):
             self.leftDrive, self.rightDrive
         )
         self.rightDrive.setInverted(True)
+
+    def arcadeDrive(self, forward, rotation):
+        self.robotDrive.arcadeDrive(forward, rotation)

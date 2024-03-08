@@ -27,10 +27,12 @@ class MyRobot(commands2.TimedCommandRobot):
         self.container = RobotContainer()
 
     def robotPeriodic(self):
+        print("robotPeriodic()")
         commands2.CommandScheduler.getInstance().run()
     
     def autonomousInit(self):
         """This function is run once each time the robot enters autonomous mode."""
+        print("autonomousInit()")
         # self.timer.restart()
         self.autonomousCommand = self.container.getAutonomousCommand()
         if self.autonomousCommand:
@@ -38,6 +40,7 @@ class MyRobot(commands2.TimedCommandRobot):
 
     def autonomousPeriodic(self):
         """This function is called periodically during autonomous."""
+        print("autonomousPeriodic()")
 
         pass
 
@@ -50,22 +53,30 @@ class MyRobot(commands2.TimedCommandRobot):
 
     def teleopInit(self): 
         """This function is called once each time the robot enters teleoperated mode."""
+        print("teleopInit()")
         if self.autonomousCommand:
             self.autonomousCommand.cancel()
         
     def teleopPeriodic(self):
         """This function is called periodically during teleoperated mode."""
+        print("teleopPeriodic()")
         print(self.container.arm)
 
     def testInit(self): 
         """This function is called once each time the robot enters test mode."""
+        print("testInit()")
         commands2.CommandScheduler.getInstance().cancelAll()
         self.container.arm.zeroEncoders()
         self.container.MoveArmToZeroAndReset()
         
     def testPeriodic(self): 
         """This function is called periodically during test mode."""
+        print("testPeriodic()")
         pass
+
+    def SimulationPeriodic(self):
+        """"This function is called periodically during the simulation mode"""
+        print("SimulationPeriodic()")
 
 if __name__ == "__main__":
     wpilib.run(MyRobot)
