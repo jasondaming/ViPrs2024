@@ -10,14 +10,12 @@ class IntakeSubsystem(commands2.Subsystem):
     def __init__(self):
         super().__init__()
 
-        # self.intake = rev.CANSparkMax(constants.CANIDs.intakeSpark, rev.CANSparkMax.MotorType.kBrushless)
-        # self.intake.IdleMode(rev.CANSparkBase.IdleMode.kBrake)
         self.intake = SparkMaxFactory.createDefaultSparkMax(constants.CANIDs.intakeSpark)
         self.intake.setIdleMode(rev.CANSparkBase.IdleMode.kBrake)
 
         self.intakeEncoder = self.intake.getEncoder() 
         
-        self.noteSensor = wpilib.DigitalInput(constants.sensorConsts.noteSensorDIO) # change channel later
+        self.noteSensor = wpilib.DigitalInput(constants.sensorConsts.noteSensorDIO) 
 
     def getIntakeSpeed(self):
         return self.intake.get()
@@ -29,7 +27,9 @@ class IntakeSubsystem(commands2.Subsystem):
         return self.intakeEncoder.getVelocity()
     
     def hasGamePiece(self):
-        return not self.noteSensor.get() #assuming the sensor reutrns false when the note is present
+        gamePieceStatus = not self.noteSensor.get() #assuming the sensor reutrns false when the note is present
+        print(f"IntakeSubsystem.hasGamePiece() - {gamePieceStatus}")
+        return gamePieceStatus
 
     def __str__(self):
         return f"IntakeSubsystem: Speed = {self.getIntakeSpeed()} | Encoder = {self.getIntakeEncoder()}"

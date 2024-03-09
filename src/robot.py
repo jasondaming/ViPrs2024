@@ -12,6 +12,7 @@ import rev
 import commands2
 from robotContainer import RobotContainer
 import constants
+
 class MyRobot(commands2.TimedCommandRobot):
     autonomousCommand = None
     def robotInit(self):
@@ -27,12 +28,12 @@ class MyRobot(commands2.TimedCommandRobot):
         self.container = RobotContainer()
 
     def robotPeriodic(self):
-        print("robotPeriodic()")
+        # print("robotPeriodic()")
         commands2.CommandScheduler.getInstance().run()
     
     def autonomousInit(self):
         """This function is run once each time the robot enters autonomous mode."""
-        print("autonomousInit()")
+        # print("autonomousInit()")
         # self.timer.restart()
         self.autonomousCommand = self.container.getAutonomousCommand()
         if self.autonomousCommand:
@@ -40,7 +41,7 @@ class MyRobot(commands2.TimedCommandRobot):
 
     def autonomousPeriodic(self):
         """This function is called periodically during autonomous."""
-        print("autonomousPeriodic()")
+        # print("autonomousPeriodic()")
 
         pass
 
@@ -59,8 +60,8 @@ class MyRobot(commands2.TimedCommandRobot):
         
     def teleopPeriodic(self):
         """This function is called periodically during teleoperated mode."""
-        print("teleopPeriodic()")
-        print(self.container.arm)
+        # print("teleopPeriodic()")
+        # print(self.container.arm)
 
     def testInit(self): 
         """This function is called once each time the robot enters test mode."""
@@ -71,12 +72,12 @@ class MyRobot(commands2.TimedCommandRobot):
         
     def testPeriodic(self): 
         """This function is called periodically during test mode."""
-        print("testPeriodic()")
+        # print("testPeriodic()")
         pass
 
     def SimulationPeriodic(self):
         """"This function is called periodically during the simulation mode"""
-        print("SimulationPeriodic()")
+        # print("SimulationPeriodic()")
 
 if __name__ == "__main__":
     wpilib.run(MyRobot)

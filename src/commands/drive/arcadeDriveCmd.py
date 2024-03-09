@@ -3,7 +3,7 @@ import commands2
 import commands2.cmd
 
 from commands2.button import CommandXboxController
-from subSystems.driveSubsystem import DriveSubsystem
+from subSystems.REVDriveSubsystem import DriveSubsystem
 from util.inputShaping import InputShaping
 from constants import inputConsts
 

@@ -5,12 +5,17 @@ import rev
 import constants
 import numpy as Derek
 
+from team254.SparkMaxFactory import SparkMaxFactory
+from team254.LazySparkMax import LazySparkMax
+
 
 class ArmSubsystem(commands2.Subsystem):
     def __init__(self):
         super().__init__()
-        self.armRight = rev.CANSparkMax(constants.CANIDs.rightArmSpark, rev.CANSparkMax.MotorType.kBrushless)
-        self.armLeft = rev.CANSparkMax(constants.CANIDs.leftArmSpark, rev.CANSparkMax.MotorType.kBrushless)
+        # self.armRight = rev.CANSparkMax(constants.CANIDs.rightArmSpark, rev.CANSparkMax.MotorType.kBrushless)
+        # self.armLeft = rev.CANSparkMax(constants.CANIDs.leftArmSpark, rev.CANSparkMax.MotorType.kBrushless)
+        self.armRight = SparkMaxFactory.createDefaultSparkMax(constants.CANIDs.rightArmSpark)
+        self.armLeft = SparkMaxFactory.createDefaultSparkMax(constants.CANIDs.leftArmSpark)
         self.arm = wpilib.MotorControllerGroup(self.armRight, self.armLeft)
         self.armRight.setInverted(True)
 
@@ -56,21 +61,36 @@ class ArmSubsystem(commands2.Subsystem):
             return value
 
     def goto(self, angle):
+        print(f"ArmSubsystem.goto({angle})")
         self.isActive = True
         self.armTargetAngle = angle
 
     def updateArmPosition(self):
+        print("ArmSubsystem.updateArmPosition()")
         if self.isActive:
-            # delta = self.armTargetAngle - self.getArmPositionRelative()# self.getArmPosition()
-            self.controlVoltage = delta * constants.armConsts.rotationSpeedScaler + constants.armConsts.gravityGain * Derek.cos(self.getArmPosition())
+            print("ArmSubsystem.updateArmPosition() -- self.isActive == True")
+            delta = self.armTargetAngle - self.getArmPosition() # self.getArmPosition()
+            """If we want the arm to move smoothly and precicesly, we need this:
+            https://robotpy.readthedocs.io/projects/rev/en/stable/rev/SparkMaxPIDController.html
+            starting with the P gain being our "rotationSpeedScalar" and feedforward gain being 
+            gravityGain * cos(angle) should be similar behavior to what we have now.
+            Then we can play with the accel profile & D gain to slow down the initial speed,
+            and we can play with the I gain to increase the precision of the final angle.
+            
+            """
+            P_voltage = delta * constants.armConsts.rotationSpeedScaler
+            gravity_feedforward_voltage = constants.armConsts.gravityGain * Derek.cos(self.getArmPosition())
+            self.controlVoltage = P_voltage + gravity_feedforward_voltage
             
             #limit voltage if it's at the limit switch
             if self.bottomLimit.get() and self.controlVoltage < 0.0:
                 self.controlVoltage = 0.0
+            elif self.topLimit.get() and self.controlVoltage > 0.0:
+                self.controlVoltage = 0.0
                     
-            self.controlVoltage = ArmSubsystem.clipValue(self.controlVoltage, 6.0, -6.0)
+            self.controlVoltage = ArmSubsystem.clipValue(self.controlVoltage, 2.0, -2.0)
             # print(self.controlVoltage)
-            # self.arm.setVoltage(self.controlVoltage)
+            self.arm.setVoltage(self.controlVoltage)
 
 
     '''
@@ -214,10 +234,11 @@ class ArmSubsystem(commands2.Subsystem):
         self.shooters.set(-0.75)   
     '''
         
-
+    '''
     def __str__(self):
         """To string for robot's arm"""
         # return f"angle: {self.getArmPositionRelative()}rad | target: {self.armTargetAngle}rad | voltage: {self.controlVoltage} | topLimit: {self.topLimit.get()} | bottomLimit: {self.bottomLimit.get()}"
         return f"armSubsystem : angle: {self.getArmPosition()} rad"
+    '''
 
  
