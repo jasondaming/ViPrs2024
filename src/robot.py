@@ -29,9 +29,9 @@ class MyRobot(commands2.TimedCommandRobot):
 
     def robotPeriodic(self):
         # print("robotPeriodic()")
-        # robotContainer.cacheSensors()
+        self.container.cacheSensors()
         commands2.CommandScheduler.getInstance().run()
-        # robotContainer.updateHardware()
+        self.container.updateHardware()
     
     def autonomousInit(self):
         """This function is run once each time the robot enters autonomous mode."""
@@ -70,8 +70,8 @@ class MyRobot(commands2.TimedCommandRobot):
         """This function is called once each time the robot enters test mode."""
         print("testInit()")
         commands2.CommandScheduler.getInstance().cancelAll()
-        self.container.arm.zeroEncoders()
-        self.container.MoveArmToZeroAndReset()
+        #self.container.arm.zeroEncoders()
+        #self.container.MoveArmToZeroAndReset()
         
     def testPeriodic(self): 
         """This function is called periodically during test mode."""

@@ -9,7 +9,7 @@ class CANIDs:
     rightDriveSparkBack = 1
     leftArmSpark = 6
     rightArmSpark = 5
-    topShootintSpark = 7
+    topShootingSpark = 7
     bottomShootingSpark = 8
     intakeSpark = 9
 

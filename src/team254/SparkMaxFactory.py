@@ -55,7 +55,7 @@ class SparkMaxFactory:
         sparkMax.restoreFactoryDefaults()
 
         SparkMaxFactory.handleCANError(id, sparkMax.setCANTimeout(200), "set timeout")
-        sparkMax.set(CANSparkLowLevel.ControlType.kDutyCycle, 0.0)
+        sparkMax.set(0.0, CANSparkLowLevel.ControlType.kDutyCycle)
 
         SparkMaxFactory.handleCANError(id, sparkMax.setPeriodicFramePeriod(CANSparkLowLevel.PeriodicFrame.kStatus0, config.STATUS_FRAME_0_RATE_MS), "set status0 rate")
         SparkMaxFactory.handleCANError(id, sparkMax.setPeriodicFramePeriod(CANSparkLowLevel.PeriodicFrame.kStatus1, config.STATUS_FRAME_1_RATE_MS), "set status1 rate")

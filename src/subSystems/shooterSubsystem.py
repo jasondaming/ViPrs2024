@@ -12,7 +12,8 @@ class ShooterSubsystem(commands2.Subsystem):
         def __init__(self):
             self.topMotorCurrent = 0.0
             self.bottomMotorCurrent = 0.0
-            self.setpoint = 0.0
+            self.topSetpoint = 0.0
+            self.bottomSetpoint = 0.0
             self.topEncoderValue = 0.0
             self.bottomEncoderValue = 0.0
             self.topCurrentSpeed = 0.0
@@ -24,7 +25,7 @@ class ShooterSubsystem(commands2.Subsystem):
         self.cache = self.Cache()
         # self.topShooter = rev.CANSparkMax(constants.CANIDs.topShootintSpark, rev.CANSparkMax.MotorType.kBrushless)
         # self.bottomShooter = rev.CANSparkMax(constants.CANIDs.bottomShootingSpark, rev.CANSparkMax.MotorType.kBrushless)
-        self.topShooter = SparkMaxFactory.createDefaultSparkMax(constants.CANIDs.topShootintSpark, False)
+        self.topShooter = SparkMaxFactory.createDefaultSparkMax(constants.CANIDs.topShootingSpark, False)
         self.bottomShooter = SparkMaxFactory.createDefaultSparkMax(constants.CANIDs.bottomShootingSpark, True)
         self.shooters = wpilib.MotorControllerGroup(self.topShooter, self.bottomShooter)
 
@@ -38,11 +39,14 @@ class ShooterSubsystem(commands2.Subsystem):
     def idleShooter(self):
         # self.topShooter.set(0.0)
         # self.bottomShooter.set(0.0)
-        self.cache.setpoint = 0.0
+        self.cache.topSetpoint = 0.0
+        self.cache.bottomSetpoint = 0.0
 
     def setShooterSpeed(self, topSpeed, bottomSpeed):
-        self.topShooter.set(topSpeed)
-        self.bottomShooter.set(bottomSpeed)
+        # self.topShooter.set(topSpeed)
+        # self.bottomShooter.set(bottomSpeed)
+        self.cache.topSetpoint = topSpeed
+        self.cache.bottomSetpoint = bottomSpeed
 
     def getShooterSpeeds(self):
         # return self.topShooter.get(), self.bottomShooter.get()
@@ -53,8 +57,8 @@ class ShooterSubsystem(commands2.Subsystem):
         return self.cache.topEncoderValue, self.cache.bottomEncoderValue
 
     def updateHardware(self):
-        self.topShooter.set(rev.CANSparkLowLevel.ControlType.kDutyCycle, self.cache.setpoint)
-        self.bottomShooter.set(rev.CANSparkLowLevel.ControlType.kDutyCycle, self.cache.setpoint)
+        self.topShooter.set(self.cache.topSetpoint, rev.CANSparkLowLevel.ControlType.kDutyCycle)
+        self.bottomShooter.set(self.cache.bottomSetpoint, rev.CANSparkLowLevel.ControlType.kDutyCycle)
 
     def cacheSensors(self):
         self.cache.topMotorCurrent = self.topShooter.getOutputCurrent()

@@ -21,7 +21,8 @@ class LazySparkMax(CANSparkMax):
         self.m_leader = leader
         return super().follow(leader)
 
-    def set(self, type: CANSparkMax.ControlType, setpoint: float):
+    def set(self, setpoint: float, type=CANSparkMax.ControlType.kDutyCycle):
+        print(f"LazySpark.set({self}, {setpoint}, {type})")
         if setpoint != self.m_last_set or type != self.m_last_control_type:
             self.m_last_set = setpoint
             self.m_last_control_type = type
@@ -29,3 +30,15 @@ class LazySparkMax(CANSparkMax):
             if self._pid_controller is None:
                 self._pid_controller = super().getPIDController()
             self._pid_controller.setReference(setpoint, type)
+
+    '''
+    def set(self, setpoint: float):
+        # Assume default control type or determine it dynamically
+        control_type = CANSparkMax.ControlType.kDutyCycle  # or your default
+        if setpoint != self.m_last_set:
+            self.m_last_set = setpoint
+            # Use the cached PID controller instance
+            if self._pid_controller is None:
+                self._pid_controller = super().getPIDController()
+            self._pid_controller.setReference(setpoint, control_type)
+    '''

@@ -10,14 +10,28 @@ from team254.LazySparkMax import LazySparkMax
 
 
 class ArmSubsystem(commands2.Subsystem):
+    class Cache:
+        def __init__(self):
+            self.setpoint = 0.0
+            self.rightCurrentAmp = 0.0
+            self.leftCurrentAmp = 0.0
+            self.rightEncoderValue = 0.0
+            self.leftEncoderValue = 0.0
+            self.rightRelativeEncoderValue = 0.0
+            self.leftRelativeEncoderValue = 0.0
+            self.bottomSensorValue = None
+            self.topSensorValue = None
+
     def __init__(self):
         super().__init__()
+        self.cache = self.Cache()
+
         # self.armRight = rev.CANSparkMax(constants.CANIDs.rightArmSpark, rev.CANSparkMax.MotorType.kBrushless)
         # self.armLeft = rev.CANSparkMax(constants.CANIDs.leftArmSpark, rev.CANSparkMax.MotorType.kBrushless)
-        self.armRight = SparkMaxFactory.createDefaultSparkMax(constants.CANIDs.rightArmSpark)
-        self.armLeft = SparkMaxFactory.createDefaultSparkMax(constants.CANIDs.leftArmSpark)
+        self.armRight = SparkMaxFactory.createDefaultSparkMax(constants.CANIDs.rightArmSpark, True)
+        self.armLeft = SparkMaxFactory.createDefaultSparkMax(constants.CANIDs.leftArmSpark, False)
         self.arm = wpilib.MotorControllerGroup(self.armRight, self.armLeft)
-        self.armRight.setInverted(True)
+        # self.armRight.setInverted(True) # this can be specified by passing in a boolean to the createDefaultSparkMax method
 
         self.armRight.IdleMode(rev.CANSparkBase.IdleMode.kCoast)
         self.armLeft.IdleMode(rev.CANSparkBase.IdleMode.kCoast)
@@ -63,11 +77,47 @@ class ArmSubsystem(commands2.Subsystem):
     def goto(self, angle):
         print(f"ArmSubsystem.goto({angle})")
         self.isActive = True
-        self.armTargetAngle = angle
+        # self.armTargetAngle = angle
+        self.cache.setpoint = angle
 
     def updateHardware(self):
-        pass
+        print("ArmSubsystem.updateHardware()")
+        if self.isActive:
+            print("ArmSubsystem.updateHardware() -- self.isActive == True")
+            delta = self.armTargetAngle - self.getArmPosition() # self.getArmPosition()
+            """If we want the arm to move smoothly and precicesly, we need this:
+            https://robotpy.readthedocs.io/projects/rev/en/stable/rev/SparkMaxPIDController.html
+            starting with the P gain being our "rotationSpeedScalar" and feedforward gain being 
+            gravityGain * cos(angle) should be similar behavior to what we have now.
+            Then we can play with the accel profile & D gain to slow down the initial speed,
+            and we can play with the I gain to increase the precision of the final angle.
+            
+            """
+            P_voltage = delta * constants.armConsts.rotationSpeedScaler
+            gravity_feedforward_voltage = constants.armConsts.gravityGain * Derek.cos(self.getArmPosition())
+            self.controlVoltage = P_voltage + gravity_feedforward_voltage
+            
+            #limit voltage if it's at the limit switch
+            if self.bottomLimit.get() and self.controlVoltage < 0.0:
+                self.controlVoltage = 0.0
+            elif self.topLimit.get() and self.controlVoltage > 0.0:
+                self.controlVoltage = 0.0
+                    
+            self.controlVoltage = ArmSubsystem.clipValue(self.controlVoltage, 2.0, -2.0)
+            # print(self.controlVoltage)
+            self.arm.setVoltage(self.controlVoltage)
 
+    def cacheSensors(self):
+        self.cache.leftCurrentAmp = self.armLeft.getOutputCurrent()
+        self.cache.rightCurrentAmp = self.armRight.getOutputCurrent()
+        self.cache.leftEncoderValue = self.armLeftEncoder.getAbsolutePosition()
+        self.cache.rightEncoderValue = self.armRightEncoder.getAbsolutePosition()
+        self.cache.leftRelativeEncoderValue = self.armLeftEncoderRelative.get()
+        self.cache.rightRelativeEncoderValue = self.armRightEncoderRelative.get()
+        self.cache.bottomSensorValue = self.bottomLimit.get()
+        self.cache.topSensorValue = self.topLimit.get()
+
+    '''
     def updateArmPosition(self):
         print("ArmSubsystem.updateArmPosition()")
         if self.isActive:
@@ -94,7 +144,7 @@ class ArmSubsystem(commands2.Subsystem):
             self.controlVoltage = ArmSubsystem.clipValue(self.controlVoltage, 2.0, -2.0)
             # print(self.controlVoltage)
             self.arm.setVoltage(self.controlVoltage)
-
+    '''
 
     '''
     In the documentation it states this:
