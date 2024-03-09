@@ -12,6 +12,10 @@ class ArmSubsystem(commands2.Subsystem):
         self.armRight = rev.CANSparkMax(5, rev.CANSparkMax.MotorType.kBrushless)
         self.armLeft = rev.CANSparkMax(6, rev.CANSparkMax.MotorType.kBrushless)
         self.arm = wpilib.MotorControllerGroup(self.armRight, self.armLeft)
+
+        self.armLeftPIDController = self.armLeft.getPIDController()
+        self.armRightPIDController = self.armRight.getPIDController()
+
         self.armRight.setInverted(True)
 
         self.topShooter = rev.CANSparkMax(7, rev.CANSparkMax.MotorType.kBrushless)
@@ -45,6 +49,7 @@ class ArmSubsystem(commands2.Subsystem):
 
         # Photo Sensor to detect if a note is loaded
         self.noteSensor = wpilib.DigitalInput(2) # change channel later
+     
 
         # bottom limit switch to detect if the arm is all the way down
         self.bottomLimit = wpilib.DigitalInput(1) # change channel later
@@ -95,6 +100,13 @@ class ArmSubsystem(commands2.Subsystem):
             """
             P_voltage = delta * constants.armConsts.rotationSpeedScaler
             gravity_feedforward_voltage = constants.armConsts.gravityGain * Derek.cos(self.getArmPosition())
+            self.armLeftPIDController.setP(constants.armConsts.rotationSpeedScaler)
+            self.armLeftPIDController.setI(0)
+            self.armLeftPIDController.setD(0)
+            self.armRightPIDController.setP(constants.armConsts.rotationSpeedScaler)
+            self.armRightPIDController.setI(0)
+            self.armRightPIDController.setD(0)
+
             self.controlVoltage = P_voltage + gravity_feedforward_voltage
             
             #limit voltage if it's at the limit switch
@@ -139,12 +151,15 @@ class ArmSubsystem(commands2.Subsystem):
 
     def pickup(self):
         self.pickupOveride = False
-        while (not self.pickupOveride) and (not self.noteSensor.get()):
+        # print(self.noteSensor.get())
+        # while (not self.pickupOveride) and (self.noteSensor.get()):
+        if (self.noteSensor.get()):
             # if the photo sensor does not detect a note being loaded then start the intake motors
             self.intake.set(0.5)
+            # print(self.pickupOveride)
         else:
-            # else the photo sensor detected a note so stop the intake motors. PickupOveride can also stop the motors
             self.intake.set(0)
+            # else the photo sensor detected a note so stop the intake motors. PickupOveride can also stop the motors
 
     def lowerArmForPickup():
         pass
@@ -202,7 +217,8 @@ class ArmSubsystem(commands2.Subsystem):
         self.pickup()
 
     def intakeOveride(self):
-        self.intakeOveride = True
+        self.pickupOveride = True
+        print("called intake overide")
 
     # def OuttakeNote(self):
     #     self.intake.set(-0.75)

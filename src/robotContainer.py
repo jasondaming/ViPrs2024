@@ -73,13 +73,17 @@ class RobotContainer:
 
         self.driverControler.x().whileTrue(
             commands2.cmd.run(
+                # lambda: self.arm.intake.set(0.5)
                 lambda: self.arm.pickup()
+                # lambda: print(self.arm.noteSensor.get())
             )
         )
         self.driverControler.y().whileTrue(
             commands2.cmd.run(
-                lambda: self.arm.intakeOveride()
+                lambda: self.arm.intakeOVeride()
             )
+        ).whileFalse(
+            lambda: self.arm.intake.set(0)
         )
         # self.driverControler.rightTrigger().whileTrue(
         #     commands2.cmd.run(
