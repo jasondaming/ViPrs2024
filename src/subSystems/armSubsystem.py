@@ -65,6 +65,9 @@ class ArmSubsystem(commands2.Subsystem):
         self.isActive = True
         self.armTargetAngle = angle
 
+    def updateHardware(self):
+        pass
+
     def updateArmPosition(self):
         print("ArmSubsystem.updateArmPosition()")
         if self.isActive:

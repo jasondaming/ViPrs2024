@@ -30,6 +30,9 @@ class IntakeSubsystem(commands2.Subsystem):
         gamePieceStatus = not self.noteSensor.get() #assuming the sensor reutrns false when the note is present
         print(f"IntakeSubsystem.hasGamePiece() - {gamePieceStatus}")
         return gamePieceStatus
+    
+    def updateHardware(self):
+        pass
 
     def __str__(self):
         return f"IntakeSubsystem: Speed = {self.getIntakeSpeed()} | Encoder = {self.getIntakeEncoder()}"

@@ -45,6 +45,9 @@ class DriveSubsystem(commands2.Subsystem):
     def arcadeDriveSS(self, forward, rotation):
         self.robotDrive.arcadeDrive(forward, rotation)
 
+    def updateHardware(self):
+        pass
+
     
 
     

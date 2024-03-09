@@ -29,7 +29,9 @@ class MyRobot(commands2.TimedCommandRobot):
 
     def robotPeriodic(self):
         # print("robotPeriodic()")
+        # robotContainer.cacheSensors()
         commands2.CommandScheduler.getInstance().run()
+        # robotContainer.updateHardware()
     
     def autonomousInit(self):
         """This function is run once each time the robot enters autonomous mode."""
@@ -47,6 +49,7 @@ class MyRobot(commands2.TimedCommandRobot):
 
     def disabledInit(self):
         self.container.arm.isActive = False
+        # robotContainer.onDisable()
         print("**DISABLED!**")
 
     def disabledPeriodic(self):

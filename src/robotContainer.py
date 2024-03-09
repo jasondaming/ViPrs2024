@@ -84,7 +84,17 @@ class RobotContainer:
         # !!!! TESTING CODE --- TEMPORARY
         # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+    def updateHardware(self):
+        self.robotDrive.updateHardware()
+        self.arm.updateHardware()
+        self.intake.updateHardware()
+        self.shooter.updateHardware()
 
+    def cacheSensors(self):
+        self.robotDrive.cacheSensors()
+        self.arm.cacheSensors()
+        self.intake.cacheSensors()
+        self.shooter.cacheSensors()
 
     def getAutonomousCommand(self):
         return commands2.cmd.none()
