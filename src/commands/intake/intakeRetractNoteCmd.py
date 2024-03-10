@@ -23,7 +23,9 @@ class IntakeRetractNoteCmd(commands2.Command):
 
     def isFinished(self):
         # Stop after the specified retract time has passed
-        return (wpilib.Timer.getFPGATimestamp() - self.initialTime) >= self.retractTime
+        elapsedTime = wpilib.Timer.getFPGATimestamp() - self.initialTime
+        # print(f"IntakeRetractNoteCmd.isFinished() elapsedTime: {elapsedTime}")
+        return elapsedTime >= self.retractTime
 
     def end(self, interrupted):
         self.intake.setIntakeSpeed(0)

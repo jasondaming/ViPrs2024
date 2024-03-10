@@ -63,10 +63,10 @@ class ShooterSubsystem(commands2.Subsystem):
     def cacheSensors(self):
         self.cache.topMotorCurrent = self.topShooter.getOutputCurrent()
         self.cache.bottomMotorCurrent = self.bottomShooter.getOutputCurrent()
-        self.topEncoderValue = self.topShooterEncoder.getVelocity()
-        self.bottomEncoderValue = self.bottomShooterEncoder.getVelocity()
-        self.topCurrentSpeed = self.topShooter.get()
-        self.bottomCurrentSpeed = self.bottomShooter.get()
+        self.cache.topEncoderValue = self.topShooterEncoder.getVelocity()
+        self.cache.bottomEncoderValue = self.bottomShooterEncoder.getVelocity()
+        self.cache.topCurrentSpeed = self.topShooter.get()
+        self.cache.bottomCurrentSpeed = self.bottomShooter.get()
 
     def __str__(self):
         return f"ShooterSubsystem: speed = {self.getShooterSpeeds()} | encoders = {self.getEncoderValues()}"

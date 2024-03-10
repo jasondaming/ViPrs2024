@@ -31,7 +31,12 @@ class ArmSubsystem(commands2.Subsystem):
         self.armRight = SparkMaxFactory.createDefaultSparkMax(constants.CANIDs.rightArmSpark, True)
         self.armLeft = SparkMaxFactory.createDefaultSparkMax(constants.CANIDs.leftArmSpark, False)
         self.arm = wpilib.MotorControllerGroup(self.armRight, self.armLeft)
-        # self.armRight.setInverted(True) # this can be specified by passing in a boolean to the createDefaultSparkMax method
+        self.armRight.setInverted(True) # this can be specified by passing in a boolean to the createDefaultSparkMax method
+        
+        # self.armRightPIDController = self.armRight.getPIDController()
+        # self.armLeftPIDController = self.armLeft.getPIDController()
+        self.armRightPIDController = self.armRight._pid_controller
+        self.armLeftPIDController = self.armLeft._pid_controller
 
         self.armRight.IdleMode(rev.CANSparkBase.IdleMode.kCoast)
         self.armLeft.IdleMode(rev.CANSparkBase.IdleMode.kCoast)
@@ -75,13 +80,13 @@ class ArmSubsystem(commands2.Subsystem):
             return value
 
     def goto(self, angle):
-        print(f"ArmSubsystem.goto({angle})")
+        print(f"ArmSubsystem.goto({angle}) -- self.cache.setpoint = {self.cache.setpoint}")
         self.isActive = True
         # self.armTargetAngle = angle
         self.cache.setpoint = angle
 
     def updateHardware(self):
-        print("ArmSubsystem.updateHardware()")
+        # print("ArmSubsystem.updateHardware()")
         if self.isActive:
             print("ArmSubsystem.updateHardware() -- self.isActive == True")
             delta = self.armTargetAngle - self.getArmPosition() # self.getArmPosition()
@@ -95,6 +100,12 @@ class ArmSubsystem(commands2.Subsystem):
             """
             P_voltage = delta * constants.armConsts.rotationSpeedScaler
             gravity_feedforward_voltage = constants.armConsts.gravityGain * Derek.cos(self.getArmPosition())
+            self.armLeftPIDController.setP(constants.armConsts.rotationSpeedScaler)
+            self.armLeftPIDController.setI(0)
+            self.armLeftPIDController.setD(0)
+            self.armRightPIDController.setP(constants.armConsts.rotationSpeedScaler)
+            self.armRightPIDController.setI(0)
+            self.armRightPIDController.setD(0)
             self.controlVoltage = P_voltage + gravity_feedforward_voltage
             
             #limit voltage if it's at the limit switch

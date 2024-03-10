@@ -22,7 +22,7 @@ class LazySparkMax(CANSparkMax):
         return super().follow(leader)
 
     def set(self, setpoint: float, type=CANSparkMax.ControlType.kDutyCycle):
-        print(f"LazySpark.set({self}, {setpoint}, {type})")
+        # print(f"LazySpark.set({self}, {setpoint}, {type})")
         if setpoint != self.m_last_set or type != self.m_last_control_type:
             self.m_last_set = setpoint
             self.m_last_control_type = type

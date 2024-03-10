@@ -49,8 +49,10 @@ class intakeConsts:
     releaseSpeed = -0.75
     offSpeed = 0
     deliverToShooterSpeed = 0.75
-    retractSpeed = -0.2
-    retractTime = 0.5
+    retractSpeed = -0.1
+    retractTime = 0.1
+    expelSpeed = 0.7
+    expelTime = 0.5
 
 class shooterConsts:
     topShootHighSpeed = 0.75

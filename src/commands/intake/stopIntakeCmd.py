@@ -1,15 +1,13 @@
 from subSystems.intakeSubsystem import IntakeSubsystem
 from commands2 import Command
 
-
-class DetectNoteCmd(Command):
+class StopIntakeCmd(Command):
     def __init__(self, intakeSubsystem: IntakeSubsystem):
         self.intake = intakeSubsystem
 
     def execute(self):
-        # This command might not need to do anything if it's just waiting for a sensor check
-        pass
+        self.intake.setIntakeSpeed(0.0)
 
     def isFinished(self):
-        # Return true when the note is detected
-        return self.intake.hasGamePiece()
+        # This command should finish immediately to proceed to the next step
+        return True

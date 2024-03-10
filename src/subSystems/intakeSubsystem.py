@@ -41,17 +41,18 @@ class IntakeSubsystem(commands2.Subsystem):
     def hasGamePiece(self):
         # gamePieceStatus = not self.noteSensor.get() #assuming the sensor reutrns false when the note is present
         gamePieceStatus = self.cache.sensorValue
-        print(f"IntakeSubsystem.hasGamePiece() - {gamePieceStatus}")
+        # print(f"IntakeSubsystem.hasGamePiece() - {gamePieceStatus}")
         return gamePieceStatus
     
     def updateHardware(self):
         self.intake.set(self.cache.setpoint)
 
     def cacheSensors(self):
-        self.currentAmps = self.intake.getOutputCurrent()
-        self.encoderValue = self.intakeEncoder.getVelocity()
-        self.currentSpeed = self.intake.get()
-        self.sensorValue = not self.noteSensor.get() #assuming the sensor reutrns false when the note is present
+        # print(f"IntakeSubsystem.cacheSensors() self.sensorValue = {self.cache.sensorValue}")
+        self.cache.currentAmps = self.intake.getOutputCurrent()
+        self.cache.encoderValue = self.intakeEncoder.getVelocity()
+        self.cache.currentSpeed = self.intake.get()
+        self.cache.sensorValue = not self.noteSensor.get() #assuming the sensor reutrns false when the note is present
 
     def __str__(self):
         return f"IntakeSubsystem: Speed = {self.getIntakeSpeed()} | Encoder = {self.getIntakeEncoder()}"
