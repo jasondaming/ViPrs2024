@@ -4,6 +4,8 @@ from constants import inputConsts
 
 
 class InputShaping():
+    last_input = 0.0  # Class variable to store the last input value for ramping
+
     @staticmethod
     def shapeInputs(input, scale_factor):
         # Deadzone implementation
@@ -17,7 +19,7 @@ class InputShaping():
         return (y1(input) * int(input >= 0) * (input <= 1) + y2(input) * (input >= -1) * (input <= 0)) * scale_factor * inputConsts.inputScale
     
     @staticmethod
-    def shapeInputsV2(input_value, scale_factor):
+    def shapeInputsV2(input_value, scale_factor): 
         # Apply dead zone
         if abs(input_value) < inputConsts.inputDeadZone:
             return 0
@@ -32,4 +34,40 @@ class InputShaping():
 
         # Apply scale factor for overall speed adjustment
         final_input = shaped_input * scale_factor * inputConsts.inputScale
+        return final_input
+    
+    @staticmethod
+    def rampInput(current_input, ramp_rate):
+        """
+        Apply ramping to the input to smooth out transitions between different input levels.
+        
+        :param current_input: The current input value.
+        :param ramp_rate: The maximum rate of change of the input per call.
+        :return: The ramped input value.
+        """
+        input_difference = current_input - InputShaping.last_input
+        # Clamp the change in input to the ramp rate
+        if input_difference > ramp_rate:
+            ramped_input = InputShaping.last_input + ramp_rate
+        elif input_difference < -ramp_rate:
+            ramped_input = InputShaping.last_input - ramp_rate
+        else:
+            ramped_input = current_input
+        # Update the last input value
+        InputShaping.last_input = ramped_input
+        return ramped_input
+
+    @staticmethod
+    def shapeInputsV3(input_value, scale_factor):
+        # Apply dead zone
+        if abs(input_value) < inputConsts.inputDeadZone:
+            input_value = 0
+        else:
+            input_value = np.sign(input_value) * ((abs(input_value) - inputConsts.inputDeadZone) / (1 - inputConsts.inputDeadZone))
+        
+        # Apply ramping to the input to smooth transitions
+        ramped_input = InputShaping.rampInput(input_value, inputConsts.rampRate)
+        
+        # Apply scaling for overall speed adjustment
+        final_input = ramped_input * scale_factor * inputConsts.inputScale
         return final_input
