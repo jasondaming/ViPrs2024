@@ -15,6 +15,8 @@ class CANIDs:
 
 class inputConsts:
     inputScale = 0.8
+    inputDeadZone = 0.05
+    rampRate = 0.05
 
 class convert:
     def in2m(inches):
@@ -26,8 +28,9 @@ class convert:
     def count2rev(count):
         return count / armConsts.countsPerRev
     
-class drivetrain:
+class driveConsts:
     wheelDiameter = convert.in2m(6)
+    driveMaxOutput = 0.8 
 
 class armConsts:
     rotationSpeedScaler = 3 # 0.5
@@ -49,6 +52,7 @@ class intakeConsts:
     releaseSpeed = -0.75
     offSpeed = 0
     deliverToShooterSpeed = 0.75
+    deliverToShooterTime = 1.0
     retractSpeed = -0.1
     retractTime = 0.1
     expelSpeed = 0.7

@@ -5,10 +5,9 @@ from subSystems.intakeSubsystem import IntakeSubsystem
 import constants
 
 class IntakeDeliverNoteToShooterCmd(commands2.Command):
-    def __init__(self, intake: IntakeSubsystem, duration: float):
+    def __init__(self, intake: IntakeSubsystem):
         super().__init__()
         self.intake = intake
-        self.duration = duration
         self.addRequirements(self.intake)
         self.timer = wpilib.Timer()
         
@@ -20,7 +19,7 @@ class IntakeDeliverNoteToShooterCmd(commands2.Command):
     
     def isFinished(self):
         # Wait for the duration to deliver the note
-        return self.timer.hasElapsed(self.duration)
+        return self.timer.hasElapsed(constants.intakeConsts.deliverToShooterSpeed)
     
     def end(self, interrupted):
         # Ensure everything is stopped

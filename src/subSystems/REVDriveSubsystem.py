@@ -69,7 +69,7 @@ class DriveSubsystem(commands2.Subsystem):
 
         :param maxOutput: the maximum output to which the drive will be constrained
         """
-        self.robotDrive.setMaxOutput = maxOutput
+        self.robotDrive.setMaxOutput(maxOutput)
 
     def arcadeDriveSS(self, forward, rotation):
         # self.robotDrive.arcadeDrive(forward, rotation)

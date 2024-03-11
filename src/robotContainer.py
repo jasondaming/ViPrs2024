@@ -18,9 +18,11 @@ from commands.intake.intakeStartCmd import IntakeStartCmd
 from commands.intake.detectNoteCmd import DetectNoteCmd
 from commands.intake.stopIntakeCmd import StopIntakeCmd
 from commands.intake.intakeExpelNoteCmd import IntakeExpelNoteCmd
-from commands.shooter.shooterStartCmd import Shooter
-from commands.drive.arcadeDriveCmd import ArcadeDriveCommand
-from constants import States, intakeConsts, inputConsts
+from commands.intake.intakeDeliverNoteToShooterCmd import IntakeDeliverNoteToShooterCmd
+from commands.shooter.shooterStartCmd import ShooterStartCmd
+from commands.shooter.shooterStopCmd import ShooterStopCmd
+from commands.drive.arcadeDriveCmd import ArcadeDriveCmd
+from constants import States, intakeConsts, inputConsts, driveConsts
 from subSystems.robotState import RobotState
 
 class RobotContainer:
@@ -39,6 +41,9 @@ class RobotContainer:
         self.intake = IntakeSubsystem()
         self.shooter = ShooterSubsystem()
 
+        # Subsystem configs
+        self.robotDrive.setMaxOutput(driveConsts.driveMaxOutput)
+
         # Command inits
 
         # Intake commands
@@ -49,18 +54,19 @@ class RobotContainer:
         self.stopIntakeCmd = StopIntakeCmd(self.intake)
         self.detectNoteCmd = DetectNoteCmd(self.intake)
         self.expelNoteCmd = IntakeExpelNoteCmd(self.intake, intakeConsts.expelSpeed, intakeConsts.expelTime)
+        self.deliverNoteCmd = IntakeDeliverNoteToShooterCmd(self.intake)
 
         # Shooter commands
-        self.
+        self.startShooterCmd = ShooterStartCmd(self.shooter)
+        self.stopShooterCmd = ShooterStopCmd(self.shooter)
 
         # Drive commands
-        self.arcadeDriveCmd = ArcadeDriveCommand(self.robotDrive, self.driverController)
+        self.arcadeDriveCmd = ArcadeDriveCmd(self.robotDrive, self.driverController)
 
         # Command groups
         #self.collectAndRetractCmd = SequentialCommandGroup(self.collectCmd, self.retractCmd)
         self.intakeCommandGroup = SequentialCommandGroup(self.intakeStartCmd, self.detectNoteCmd, self.retractCmd)
         # self.intakeCommandGroup = SequentialCommandGroup(self.intakeStartCmd, self.detectNoteCmd, self.stopIntakeCmd)
-        se
 
         # Configure buttons
         self.configureButtonBindings()
@@ -81,6 +87,13 @@ class RobotContainer:
 
         self.driverController.x().onTrue(self.expelNoteCmd)
 
+        # Setting 
+        self.rightTriggerPressed.whileTrue(self.startShooterCmd)
+        self.rightTriggerPressed.negate().whileTrue(SequentialCommandGroup(
+            self.deliverNoteCmd,
+            self.stopShooterCmd,
+            self.stopIntakeCmd
+        ))
 
         # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         # !!!! TESTING CODE --- TEMPORARY
