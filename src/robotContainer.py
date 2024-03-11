@@ -37,14 +37,15 @@ class RobotContainer:
                 ),
                 self.robotDrive
             ).alongWith(
-            commands2.cmd.run(
+                commands2.cmd.run(
                     lambda: self.arm.updateArmPosition()
                 )
-            ).alongWith(
-                commands2.cmd.run(
-                    lambda: self.arm.shooterIdle()
-                )
             )
+            # .alongWith(
+            #     commands2.cmd.run(
+            #         lambda: self.arm.shooterIdle()
+            #     )
+            # )
             
         )
 
@@ -63,7 +64,7 @@ class RobotContainer:
 
         self.driverControler.a().whileTrue(
             commands2.cmd.run(
-                lambda: self.arm.goto(0.4)
+                lambda: self.arm.goto(0.8)
             )
         ).whileFalse(
             commands2.cmd.run(
@@ -77,20 +78,37 @@ class RobotContainer:
                 lambda: self.arm.pickup()
                 # lambda: print(self.arm.noteSensor.get())
             )
-        )
-        self.driverControler.y().whileTrue(
-            commands2.cmd.run(
-                lambda: self.arm.intakeOVeride()
-            )
         ).whileFalse(
-            lambda: self.arm.intake.set(0)
+            commands2.cmd.run(
+                lambda: self.arm.intake.set(0)
+            )
         )
+        # self.driverControler.y().whileTrue(
+        #     commands2.cmd.run(
+        #         lambda: self.arm.intakeOVeride()
+        #     )
+        # ).whileFalse(
+        #     lambda: self.arm.intake.set(0)
+        # )
         # self.driverControler.rightTrigger().whileTrue(
         #     commands2.cmd.run(
         #         lambda: self.arm.pewpew()
         #     )
         # )
-
+        self.driverControler.y().whileTrue(
+            commands2.cmd.sequence(
+                lambda: print("trigger"),
+                lambda: self.arm.spinUpShooters(),
+                commands2.cmd.waitSeconds(1),
+                lambda: self.arm.shoot(),
+                commands2.cmd.waitSeconds(1),
+                lambda: self.arm.disableShooter()
+            )
+        ).whileFalse(
+            commands2.cmd.run(
+                lambda: self.arm.disableShooter()
+            )
+        )
     def MoveArmToZeroAndReset(self):
         moveCmd = commands2.cmd.run(
             print("would be running arm @ 30%")#self.arm.set(0.3)

@@ -21,6 +21,8 @@ class ArmSubsystem(commands2.Subsystem):
         self.topShooter = rev.CANSparkMax(7, rev.CANSparkMax.MotorType.kBrushless)
         self.bottomShooter = rev.CANSparkMax(8, rev.CANSparkMax.MotorType.kBrushless)
         self.shooters = wpilib.MotorControllerGroup(self.topShooter, self.bottomShooter)
+        self.topShooter.setInverted(True)
+        self.bottomShooter.setInverted(True)
         # self.bottomShooter.setInverted(True)
         self.intake = rev.CANSparkMax(9, rev.CANSparkMax.MotorType.kBrushless)
 
@@ -100,12 +102,12 @@ class ArmSubsystem(commands2.Subsystem):
             """
             P_voltage = delta * constants.armConsts.rotationSpeedScaler
             gravity_feedforward_voltage = constants.armConsts.gravityGain * Derek.cos(self.getArmPosition())
-            self.armLeftPIDController.setP(constants.armConsts.rotationSpeedScaler)
-            self.armLeftPIDController.setI(0)
-            self.armLeftPIDController.setD(0)
-            self.armRightPIDController.setP(constants.armConsts.rotationSpeedScaler)
-            self.armRightPIDController.setI(0)
-            self.armRightPIDController.setD(0)
+            # self.armLeftPIDController.setP(constants.armConsts.rotationSpeedScaler)
+            # self.armLeftPIDController.setI(0)
+            # self.armLeftPIDController.setD(0)
+            # self.armRightPIDController.setP(constants.armConsts.rotationSpeedScaler)
+            # self.armRightPIDController.setI(0)
+            # self.armRightPIDController.setD(0)
 
             self.controlVoltage = P_voltage + gravity_feedforward_voltage
             
@@ -118,6 +120,24 @@ class ArmSubsystem(commands2.Subsystem):
             self.controlVoltage = ArmSubsystem.clipValue(self.controlVoltage, 2.0, -2.0)
             # print(self.controlVoltage)
             self.arm.setVoltage(self.controlVoltage)
+
+    def spinUpShooters(self):
+        self.topShooter.set(constants.shootingConsts.shootingSpeedTop)
+        self.bottomShooter.set(constants.shootingConsts.shootingSpeedBottom)
+
+    def shoot(self):
+        self.intake.set(1)
+
+    def disableShooter(self):
+        self.topShooter.set(0)
+        self.bottomShooter.set(0)
+        self.intake.set(0)
+
+    def raise2speaker(self):
+        self.armTargetAngle = constants.shootingConsts.speakerPosition
+
+    def raise2amp(self):
+        self.armTargetAngle = constants.shootingConsts.ampPositon
 
     def shootHigh(self):
         pass
@@ -150,15 +170,16 @@ class ArmSubsystem(commands2.Subsystem):
         """
 
     def pickup(self):
-        self.pickupOveride = False
+        # self.pickupOveride = False
         # print(self.noteSensor.get())
         # while (not self.pickupOveride) and (self.noteSensor.get()):
         if (self.noteSensor.get()):
             # if the photo sensor does not detect a note being loaded then start the intake motors
-            self.intake.set(0.5)
+            self.intake.set(constants.armConsts.intakeSpeed)
             # print(self.pickupOveride)
         else:
             self.intake.set(0)
+        # print(self.intake.get())
             # else the photo sensor detected a note so stop the intake motors. PickupOveride can also stop the motors
 
     def lowerArmForPickup():
@@ -228,6 +249,6 @@ class ArmSubsystem(commands2.Subsystem):
 
     def __str__(self):
         """To string for robot's arm"""
-        return f"angle: {self.getArmPositionRelative()}rad | target: {self.armTargetAngle}rad | voltage: {self.controlVoltage} | topLimit: {self.topLimit.get()} | bottomLimit: {self.bottomLimit.get()}"
+        return f"angle: {self.getArmPosition()}rad | target: {self.armTargetAngle}rad | voltage: {self.controlVoltage} | topLimit: {self.topLimit.get()} | bottomLimit: {self.bottomLimit.get()}"
 
  

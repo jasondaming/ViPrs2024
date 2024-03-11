@@ -67,7 +67,7 @@ class MyRobot(commands2.TimedCommandRobot):
         
     def testPeriodic(self): 
         """This function is called periodically during test mode."""
-        pass
+        print(self.container.arm)
 
 if __name__ == "__main__":
     wpilib.run(MyRobot)
