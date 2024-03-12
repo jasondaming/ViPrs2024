@@ -31,6 +31,7 @@ class convert:
 class driveConsts:
     wheelDiameter = convert.in2m(6)
     driveMaxOutput = 0.8 
+    slowDriveScale = 0.5
 
 class armConsts:
     rotationSpeedScaler = 3 # 0.5
@@ -52,6 +53,10 @@ class armConsts:
     maxVelocity = 2000
     maxAcc = 1500
     slotID = 0
+    intakeAngle = 0.0 # radians
+    speakerAngle = 0.4 # radians
+    ampAngle = 1.5 # radians
+    startingAngle = 1.0 # radians
 
 class intakeConsts:
     captureSpeed = 0.75

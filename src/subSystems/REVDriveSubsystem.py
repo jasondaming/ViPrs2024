@@ -29,6 +29,9 @@ class DriveSubsystem(commands2.Subsystem):
 
         self.cache = self.Cache()
 
+        self.isSlowMode = False
+        self.isReverseMode = False
+
         self.gyroAccl = navx.AHRS(wpilib.SPI.Port.kMXP)
         # TODO: initialize gyro here
         
@@ -63,6 +66,20 @@ class DriveSubsystem(commands2.Subsystem):
         self.rigthBackEncoder = self.rightBack.getEncoder()
 
 
+    def toggleSlowMode(self):
+        self.isSlowMode = not self.isSlowMode
+
+    def toggleReverseMode(self):
+        self.isReverseMode = not self.isReverseMode
+
+    def getDriveScale(self):
+        """Return the scale factor based on the slow mode state."""
+        if self.isSlowMode:
+            return constants.driveConsts.slowDriveScale
+        else:
+            return 1.0  # No scaling in normal mode
+
+
     def setMaxOutput(self, maxOutput: float):
         """
         Sets the max output of the drive. Useful for scaling the drive to drive more slowly.
@@ -73,8 +90,13 @@ class DriveSubsystem(commands2.Subsystem):
 
     def arcadeDriveSS(self, forward, rotation):
         # self.robotDrive.arcadeDrive(forward, rotation)
-        self.cache.forwardSetpoint = forward
-        self.cache.rotationSetpoint = rotation
+
+        if self.isReverseMode:
+            forward = -forward
+
+        scale = self.getDriveScale()
+        self.cache.forwardSetpoint = forward * scale
+        self.cache.rotationSetpoint = rotation * scale
 
     def updateHardware(self):
         self.robotDrive.arcadeDrive(self.cache.forwardSetpoint, self.cache.rotationSetpoint)

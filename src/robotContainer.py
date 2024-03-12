@@ -21,7 +21,10 @@ from commands.intake.intakeExpelNoteCmd import IntakeExpelNoteCmd
 from commands.intake.intakeDeliverNoteToShooterCmd import IntakeDeliverNoteToShooterCmd
 from commands.shooter.shooterStartCmd import ShooterStartCmd
 from commands.shooter.shooterStopCmd import ShooterStopCmd
+from commands.arm.MoveArmCmds import MoveArmToIntakePosition, MoveArmToScoreHigh, MoveArmToScoreLow, MoveArmToStartingPosition
 from commands.drive.arcadeDriveCmd import ArcadeDriveCmd
+from commands.drive.driveSlowCmd import ToggleSlowModeCmd
+from commands.drive.toggleReverseDriveCmd import ToggleReverseDriveCmd
 from constants import States, intakeConsts, inputConsts, driveConsts
 from subSystems.robotState import RobotState
 
@@ -34,6 +37,7 @@ class RobotContainer:
         # Control devices
         self.driverController = commands2.button.CommandXboxController(0)
         self.rightTriggerPressed = self.driverController.rightTrigger(threshold=0.5)
+        self.leftTriggerPressed = commands2.button.Trigger(lambda: self.driverController.getLeftTriggerAxis() > 0.5)
 
         # Subsystem inits
         self.robotDrive = DriveSubsystem()
@@ -45,6 +49,12 @@ class RobotContainer:
         self.robotDrive.setMaxOutput(driveConsts.driveMaxOutput)
 
         # Command inits
+
+        # Arm commands
+        self.moveToStartingPosition = MoveArmToStartingPosition(self.arm)
+        self.moveToScoreHigh = MoveArmToScoreHigh(self.arm)
+        self.moveToScoreLow = MoveArmToScoreLow(self.arm)
+        self.moveToIntakePosition = MoveArmToIntakePosition(self.arm)
 
         # Intake commands
         self.collectCmd = IntakeCollectNoteCmd(self.intake, intakeConsts.captureSpeed)
@@ -62,6 +72,8 @@ class RobotContainer:
 
         # Drive commands
         self.arcadeDriveCmd = ArcadeDriveCmd(self.robotDrive, self.driverController)
+        self.driveSlowCmd = ToggleSlowModeCmd(self.robotDrive)
+        self.reverseDriveCmd = ToggleReverseDriveCmd(self.robotDrive)
 
         # Command groups
         #self.collectAndRetractCmd = SequentialCommandGroup(self.collectCmd, self.retractCmd)
@@ -80,6 +92,8 @@ class RobotContainer:
 
     def configureButtonBindings(self):
         # Button A binding
+        # Move arm to intake position
+        self.driverController.a().onTrue(self.moveToIntakePosition)
 
         # Button B binding
         # self.driverController.b().toggleOnTrue(self.collectAndRetractCmd)
@@ -93,8 +107,12 @@ class RobotContainer:
         # Button Y binding
 
         # Right bumper binding
+        # Move arm to speaker (high) scoring position
+        self.driverController.rightBumper().onTrue(self.moveToScoreHigh)
 
         # Left bumper binding
+        # Move arm to amp (low) scoring position
+        self.driverController.leftBumper().onTrue(self.moveToScoreLow)
 
         # Right trigger binding 
         self.rightTriggerPressed.whileTrue(self.startShooterCmd)
@@ -105,10 +123,13 @@ class RobotContainer:
         ))
 
         # Left trigger binding
+        self.leftTriggerPressed.whileTrue(self.driveSlowCmd)
 
         # Start button binding
 
         # "Back" button binding. (This looksl ike the menu button)
+        self.driverController.back().onTrue(self.reverseDriveCmd)
+
 
         
 

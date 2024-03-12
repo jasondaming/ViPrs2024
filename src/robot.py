@@ -27,6 +27,12 @@ class MyRobot(commands2.TimedCommandRobot):
         # gearbox is constructed, you might have to invert the left side instead.
         self.container = RobotContainer()
 
+        # Keep arm at starting position at the start of the match. Can't 
+        # put this as a default comamnd for the arm subsystem because it
+        # would get called when no arm position command is running
+        self.moveArmToStart = self.container.moveToStartingPosition
+        self.moveArmToStart.schedule()
+
     def robotPeriodic(self):
         # print("robotPeriodic()")
         self.container.cacheSensors()
