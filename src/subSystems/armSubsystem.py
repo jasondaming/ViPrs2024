@@ -23,6 +23,8 @@ class ArmSubsystem(commands2.Subsystem):
             self.leftRelativeEncoderValue = 0.0
             self.bottomSensorValue = None
             self.topSensorValue = None
+            self.maxEncoderValue = 0.0
+            self.minEncoderValue = 0.0
 
     def __init__(self):
         super().__init__()
@@ -50,13 +52,12 @@ class ArmSubsystem(commands2.Subsystem):
         self.armLeftPIDController.setD(constants.armConsts.armControlD)
 
         # Set the acceleration strategy for both PID controllers
-        self.armRightPIDController.setSmartMotionAccelStrategy(rev.SparkMaxPIDController.AccelStrategy.kSCurve, 0)
-        self.armLeftPIDController.setSmartMotionAccelStrategy(rev.SparkMaxPIDController.AccelStrategy.kSCurve, 0)
-
-        self.armRightPIDController.setSmartMotionMaxVelocity(constants.armConsts.maxVelocity, constants.armConsts.slotID)
-        self.armLeftPIDController.setSmartMotionMaxVelocity(constants.armConsts.maxVelocity, constants.armConsts.slotID)
-        self.armRightPIDController.setSmartMotionMaxAccel(constants.armConsts.maxAcc, constants.armConsts.slotID)
-        self.armLeftPIDController.setSmartMotionMaxAccel(constants.armConsts.maxAcc, constants.armConsts.slotID)
+        # self.armRightPIDController.setSmartMotionAccelStrategy(rev.SparkMaxPIDController.AccelStrategy.kSCurve, 0)
+        # self.armLeftPIDController.setSmartMotionAccelStrategy(rev.SparkMaxPIDController.AccelStrategy.kSCurve, 0)
+        # self.armRightPIDController.setSmartMotionMaxVelocity(constants.armConsts.maxVelocity, constants.armConsts.slotID)
+        # self.armLeftPIDController.setSmartMotionMaxVelocity(constants.armConsts.maxVelocity, constants.armConsts.slotID)
+        # self.armRightPIDController.setSmartMotionMaxAccel(constants.armConsts.maxAcc, constants.armConsts.slotID)
+        # self.armLeftPIDController.setSmartMotionMaxAccel(constants.armConsts.maxAcc, constants.armConsts.slotID)
 
         self.armRight.IdleMode(rev.CANSparkBase.IdleMode.kCoast)
         self.armLeft.IdleMode(rev.CANSparkBase.IdleMode.kCoast)
@@ -81,6 +82,8 @@ class ArmSubsystem(commands2.Subsystem):
         self.armRightEncoder.setPositionOffset(0.45699721142493027)
         self.armLeftEncoder.setPositionOffset(0.39403500985087525)
 
+        self.zeroEncoders()
+
         # bottom limit switch to detect if the arm is all the way down
         self.bottomLimit = wpilib.DigitalInput(constants.sensorConsts.armBottomLimit) # change channel later
         self.topLimit = wpilib.DigitalInput(constants.sensorConsts.armTopLimit)
@@ -103,7 +106,7 @@ class ArmSubsystem(commands2.Subsystem):
         print(f"ArmSubsystem.goto({angle}) -- self.cache.setpoint = {self.cache.setpoint}")
         self.isActive = True
         # self.armTargetAngle = angle
-        self.cache.setpoint = angle
+        self.cache.setpoint = constants.convert.rad2rev(angle)
 
     def stop(self):
         """
@@ -124,13 +127,16 @@ class ArmSubsystem(commands2.Subsystem):
         # position with zero feedforward to hold position without additional input.
         # This is more of a "soft stop" that leverages the PID controller.
         gravity_compensation = self.calcGravityComp()
-        self.armRightPIDController.setReference(currentPos, rev.CANSparkLowLevel.ControlType.kPosition, 0, gravity_compensation, rev.SparkPIDController.ArbFFUnits.kVoltage)
-        self.armLeftPIDController.setReference(currentPos, rev.CANSparkLowLevel.ControlType.kPosition, 0, gravity_compensation, rev.SparkPIDController.ArbFFUnits.kVoltage)
+        # self.armRightPIDController.setReference(currentPos, rev.CANSparkLowLevel.ControlType.kPosition, 0, gravity_compensation, rev.SparkPIDController.ArbFFUnits.kVoltage)
+        # self.armLeftPIDController.setReference(currentPos, rev.CANSparkLowLevel.ControlType.kPosition, 0, gravity_compensation, rev.SparkPIDController.ArbFFUnits.kVoltage)
+        self.armRightPIDController.setReference(currentPos, rev.CANSparkLowLevel.ControlType.kPosition, 0, gravity_compensation)
+        self.armLeftPIDController.setReference(currentPos, rev.CANSparkLowLevel.ControlType.kPosition, 0, gravity_compensation)
 
     def calcGravityComp(self):
         return constants.armConsts.gravityGain * Derek.cos(self.getArmPosition())
 
     def updateHardware(self):
+        print(f"armSubsystem.updateHardware() - getArmPosition()={self.getArmPosition()}")
         if self.isActive:
             currentPos = self.getArmPosition()  # Your method to calculate the current arm position
             targetPos = self.cache.setpoint  # Target position set by `goto` method
@@ -146,11 +152,20 @@ class ArmSubsystem(commands2.Subsystem):
                 # If not at top, clear the holding flag
                 self.holdingAtTop = False
 
+            # if self.isPositionSafe(targetPos) == False:
+            #     # We are at an unsafe position, something is wrong
+            #     print("!!!!!!!!! UNSAFE POSITION DETECTED !!!!!!!!!!!!!!")
+            #     return
+            
             # PID Controller already set up with P, I, D values
             # Use setReference to move arm to target position
             # Ensure setReference is using correct units matching your encoders
-            self.armRightPIDController.setReference(targetPos, rev.CANSparkLowLevel.ControlType.kSmartMotion, 0, gravity_feedforward_voltage, rev.SparkPIDController.ArbFFUnits.kVoltage)
-            self.armLeftPIDController.setReference(targetPos, rev.CANSparkLowLevel.ControlType.kSmartMotion, 0, gravity_feedforward_voltage, rev.SparkPIDController.ArbFFUnits.kVoltage)
+            print(f"armSubsystem.updateHardware() - currentPos={currentPos}, targetPos={targetPos}, ctrl={rev.CANSparkLowLevel.ControlType.kPosition}, pidSlot={constants.armConsts.slotID}, arbFeedforward={gravity_feedforward_voltage}")
+            # self.armRightPIDController.setReference(targetPos, rev.CANSparkLowLevel.ControlType.kSmartMotion, pidSlot=0, arbFeedforward=gravity_feedforward_voltage, arbFFUnits=rev.SparkPIDController.ArbFFUnits.kVoltage)
+            # self.armLeftPIDController.setReference(targetPos, rev.CANSparkLowLevel.ControlType.kSmartMotion, pidSlot=0, arbFeedforward=gravity_feedforward_voltage, arbFFUnits=rev.SparkPIDController.ArbFFUnits.kVoltage)
+            self.armRightPIDController.setReference(targetPos, rev.CANSparkLowLevel.ControlType.kPosition, pidSlot=constants.armConsts.slotID, arbFeedforward=gravity_feedforward_voltage)
+            self.armLeftPIDController.setReference(targetPos, rev.CANSparkLowLevel.ControlType.kPosition, pidSlot=constants.armConsts.slotID, arbFeedforward=gravity_feedforward_voltage)
+
 
             # Logic for bottom limit switch as before
             if self.cache.bottomSensorValue and error < 0:
@@ -226,7 +241,17 @@ class ArmSubsystem(commands2.Subsystem):
     def getArmPosition(self):
         return constants.convert.rev2rad((self.getArmRightPosition() - self.getArmLeftPosition()) / 2)
     
-        
+    def isPositionSafe(self, position):
+        # Example safe bounds, adjust based on your system's specifics
+        safeMin = constants.armConsts.minEncoderValue
+        safeMax = constants.armConsts.maxEncoderValue
+        isSafe = safeMin <= position <= safeMax
+        print(f"armSubsystem.isPositionSafe() - safeMin={safeMin}, safeMax={safeMax}, isSafe={isSafe}")
+        return isSafe
+    
+    
+
+
     '''
     def __str__(self):
         """To string for robot's arm"""

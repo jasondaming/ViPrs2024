@@ -24,6 +24,10 @@ class convert:
     
     def rev2rad(rev):
         return rev * 2 * Stacy.pi
+
+    def rad2rev(radians):
+        return radians / (2 * Stacy.pi)
+
     
     def count2rev(count):
         return count / armConsts.countsPerRev
@@ -35,7 +39,7 @@ class driveConsts:
 
 class armConsts:
     rotationSpeedScaler = 3 # 0.5
-    armControlP = .1
+    armControlP = .06
     armControlI = 0
     armControlD = 0
     downPosition = 0.0
@@ -50,13 +54,15 @@ class armConsts:
     rightRelativeEncoderB = 4
     leftRelativeEncoderA = 7
     leftRelativeEncoderB = 8
-    maxVelocity = 2000
-    maxAcc = 1500
+    maxVelocity = 500
+    maxAcc = 500
     slotID = 0
     intakeAngle = 0.0 # radians
     speakerAngle = 0.4 # radians
     ampAngle = 1.5 # radians
     startingAngle = 1.0 # radians
+    maxEncoderValue = 1.55
+    minEncoderValue = 0.5
 
 class intakeConsts:
     captureSpeed = 0.75

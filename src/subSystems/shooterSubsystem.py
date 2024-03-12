@@ -27,6 +27,8 @@ class ShooterSubsystem(commands2.Subsystem):
         # self.bottomShooter = rev.CANSparkMax(constants.CANIDs.bottomShootingSpark, rev.CANSparkMax.MotorType.kBrushless)
         self.topShooter = SparkMaxFactory.createDefaultSparkMax(constants.CANIDs.topShootingSpark, False)
         self.bottomShooter = SparkMaxFactory.createDefaultSparkMax(constants.CANIDs.bottomShootingSpark, True)
+        self.topShooter.setInverted(True)
+        self.bottomShooter.setInverted(True)
         self.shooters = wpilib.MotorControllerGroup(self.topShooter, self.bottomShooter)
 
         self.topShooter.IdleMode(rev.CANSparkBase.IdleMode.kCoast)
