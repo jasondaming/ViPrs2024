@@ -15,6 +15,32 @@ def shapeInputs(input, scale_factor):
         return (DrArnett.sin((x * DrArnett.pi) - (DrArnett.pi / 2)) / -2) - 0.5
     return (y1(input) * int(input >= 0) * (input <= 1) + y2(input) * (input >= -1) * (input <= 0)) * scale_factor * constants.inputConsts.inputScale
 
+class shootNote(commands2.Command):
+    def __init__(self, arm):
+        super().__init__()
+        self.arm = arm
+
+    def initialize(self):
+        print("shootNote")
+        self.arm.shoot()
+
+    def isFinished(self):
+        return False
+    
+
+class stopShooter(commands2.Command):
+    def __init__(self, arm):
+        super().__init__()
+        self.arm = arm
+
+    def initialize(self):
+        print("stop Sshooter")
+        self.arm.disableShooter()
+
+    def isFinished(self):
+        return True
+    
+stopShooterObject = stopShooter(ArmSubsystem)
 class RobotContainer:
     
     def __init__(self):
@@ -24,7 +50,10 @@ class RobotContainer:
         self.configureButtonBindings()
         
         self.scale_factor = 1
-        
+
+        self.shootNoteObject = shootNote(self.arm)
+        self.stopShooterObject = stopShooter(self.arm)
+
         self.robotDrive.setDefaultCommand(
             commands2.cmd.run(
                 lambda: self.robotDrive.robotDrive.arcadeDrive(
@@ -95,20 +124,49 @@ class RobotContainer:
         #         lambda: self.arm.pewpew()
         #     )
         # )
-        self.driverControler.y().whileTrue(
-            commands2.cmd.sequence(
-                lambda: print("trigger"),
-                lambda: self.arm.spinUpShooters(),
-                commands2.cmd.waitSeconds(1),
-                lambda: self.arm.shoot(),
-                commands2.cmd.waitSeconds(1),
-                lambda: self.arm.disableShooter()
-            )
-        ).whileFalse(
+            
+        def spinUpShooters():
+            self.arm.spinUpShooters()
+            print("after")
+
+        self.driverControler.rightTrigger().whileTrue(
             commands2.cmd.run(
-                lambda: self.arm.disableShooter()
+                spinUpShooters
+            )
+            # commands2.cmd.SequentialCommandGroup(
+            #     commands2.cmd.run(lambda: self.arm.spinUpShooters()),
+            #     commands2.cmd.waitSeconds(1),
+            #     commands2.cmd.run(lambda: self.arm.shoot()),
+            #     commands2.cmd.waitSeconds(1),
+            #     commands2.cmd.run(lambda: self.arm.disableShooter())
+            # )
+        )
+        self.driverControler.rightTrigger().negate().whileTrue(
+            commands2.cmd.SequentialCommandGroup(
+                self.shootNoteObject,
+                commands2.cmd.waitSeconds(1),
+                self.stopShooterObject
             )
         )
+        # .whileFalse(
+        #     commands2.cmd.run(
+        #         lambda: self.arm.disableShooter()
+        #     )
+        # )
+        # self.driverControler.y().whileTrue(
+        #     commands2.cmd.sequence(
+        #         lambda: print("trigger"),
+        #         lambda: self.arm.spinUpShooters(),
+        #         commands2.cmd.waitSeconds(1),
+        #         lambda: self.arm.shoot(),
+        #         commands2.cmd.waitSeconds(1),
+        #         lambda: self.arm.disableShooter()
+        #     )
+        # ).whileFalse(
+        #     commands2.cmd.run(
+        #         lambda: self.arm.disableShooter()
+        #     )
+        # )
     def MoveArmToZeroAndReset(self):
         moveCmd = commands2.cmd.run(
             print("would be running arm @ 30%")#self.arm.set(0.3)

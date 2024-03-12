@@ -100,6 +100,8 @@ class ArmSubsystem(commands2.Subsystem):
             and we can play with the I gain to increase the precision of the final angle.
             
             """
+            print(f"armLeftEncoder: {self.armLeftEncoder.getAbsolutePosition()}, armRightEncoder: {self.armRightEncoder.getAbsolutePosition()}")
+            print(f"delta: {delta}")
             P_voltage = delta * constants.armConsts.rotationSpeedScaler
             gravity_feedforward_voltage = constants.armConsts.gravityGain * Derek.cos(self.getArmPosition())
             # self.armLeftPIDController.setP(constants.armConsts.rotationSpeedScaler)
@@ -110,6 +112,8 @@ class ArmSubsystem(commands2.Subsystem):
             # self.armRightPIDController.setD(0)
 
             self.controlVoltage = P_voltage + gravity_feedforward_voltage
+            print(f"P_voltage: {P_voltage} - controlVoltage: {self.controlVoltage}")
+            print(f"getArmPosition(): {self.getArmPosition()}")
             
             #limit voltage if it's at the limit switch
             if self.bottomLimit.get() and self.controlVoltage < 0.0:
