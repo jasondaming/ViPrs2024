@@ -34,6 +34,9 @@ class driveConsts:
 
 class armConsts:
     rotationSpeedScaler = 3 # 0.5
+    armControlP = .1
+    armControlI = 0
+    armControlD = 0
     downPosition = 0.0
     upPosition = Stacy.pi/2.0
     radiansPerRev = 2 * Stacy.pi
@@ -46,6 +49,9 @@ class armConsts:
     rightRelativeEncoderB = 4
     leftRelativeEncoderA = 7
     leftRelativeEncoderB = 8
+    maxVelocity = 2000
+    maxAcc = 1500
+    slotID = 0
 
 class intakeConsts:
     captureSpeed = 0.75

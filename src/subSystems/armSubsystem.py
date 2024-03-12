@@ -17,6 +17,8 @@ class ArmSubsystem(commands2.Subsystem):
             self.leftCurrentAmp = 0.0
             self.rightEncoderValue = 0.0
             self.leftEncoderValue = 0.0
+            self.leftPositionOffset = 0.0
+            self.rightPositionOffset = 0.0
             self.rightRelativeEncoderValue = 0.0
             self.leftRelativeEncoderValue = 0.0
             self.bottomSensorValue = None
@@ -25,6 +27,8 @@ class ArmSubsystem(commands2.Subsystem):
     def __init__(self):
         super().__init__()
         self.cache = self.Cache()
+
+        self.holdingAtTop = False  # Add a flag to indicate when holding position at top
 
         # self.armRight = rev.CANSparkMax(constants.CANIDs.rightArmSpark, rev.CANSparkMax.MotorType.kBrushless)
         # self.armLeft = rev.CANSparkMax(constants.CANIDs.leftArmSpark, rev.CANSparkMax.MotorType.kBrushless)
@@ -37,6 +41,22 @@ class ArmSubsystem(commands2.Subsystem):
         # self.armLeftPIDController = self.armLeft.getPIDController()
         self.armRightPIDController = self.armRight._pid_controller
         self.armLeftPIDController = self.armLeft._pid_controller
+
+        self.armRightPIDController.setP(constants.armConsts.armControlP)
+        self.armRightPIDController.setI(constants.armConsts.armControlI)
+        self.armRightPIDController.setD(constants.armConsts.armControlD)
+        self.armLeftPIDController.setP(constants.armConsts.armControlP)
+        self.armLeftPIDController.setI(constants.armConsts.armControlI)
+        self.armLeftPIDController.setD(constants.armConsts.armControlD)
+
+        # Set the acceleration strategy for both PID controllers
+        self.armRightPIDController.setSmartMotionAccelStrategy(rev.SparkMaxPIDController.AccelStrategy.kSCurve, 0)
+        self.armLeftPIDController.setSmartMotionAccelStrategy(rev.SparkMaxPIDController.AccelStrategy.kSCurve, 0)
+
+        self.armRightPIDController.setSmartMotionMaxVelocity(constants.armConsts.maxVelocity, constants.armConsts.slotID)
+        self.armLeftPIDController.setSmartMotionMaxVelocity(constants.armConsts.maxVelocity, constants.armConsts.slotID)
+        self.armRightPIDController.setSmartMotionMaxAccel(constants.armConsts.maxAcc, constants.armConsts.slotID)
+        self.armLeftPIDController.setSmartMotionMaxAccel(constants.armConsts.maxAcc, constants.armConsts.slotID)
 
         self.armRight.IdleMode(rev.CANSparkBase.IdleMode.kCoast)
         self.armLeft.IdleMode(rev.CANSparkBase.IdleMode.kCoast)
@@ -85,92 +105,116 @@ class ArmSubsystem(commands2.Subsystem):
         # self.armTargetAngle = angle
         self.cache.setpoint = angle
 
+    def stop(self):
+        """
+        Stops the arm movement by setting the motor output to zero.
+        This method can be called for immediate stop actions, ignoring PID control.
+        """
+        # Additionally, for PID control, you might want to ensure that the system
+        # is not trying to move the arm by setting the setpoint to the current position.
+        # This effectively tells the PID controller to "hold" rather than to "move".
+        currentPos = self.getArmPosition()
+        self.cache.setpoint = currentPos
+
+        # Reset any flags or states as necessary
+        self.holdingAtTop = False  # If using a flag to indicate holding at the top
+
+        # Optionally, if you're using PID control to manage arm position and you want
+        # to maintain that control framework, you could set the reference to the current
+        # position with zero feedforward to hold position without additional input.
+        # This is more of a "soft stop" that leverages the PID controller.
+        gravity_compensation = self.calcGravityComp()
+        self.armRightPIDController.setReference(currentPos, rev.CANSparkLowLevel.ControlType.kPosition, 0, gravity_compensation, rev.SparkPIDController.ArbFFUnits.kVoltage)
+        self.armLeftPIDController.setReference(currentPos, rev.CANSparkLowLevel.ControlType.kPosition, 0, gravity_compensation, rev.SparkPIDController.ArbFFUnits.kVoltage)
+
+    def calcGravityComp(self):
+        return constants.armConsts.gravityGain * Derek.cos(self.getArmPosition())
+
     def updateHardware(self):
-        # print("ArmSubsystem.updateHardware()")
         if self.isActive:
-            print("ArmSubsystem.updateHardware() -- self.isActive == True")
-            delta = self.armTargetAngle - self.getArmPosition() # self.getArmPosition()
-            """If we want the arm to move smoothly and precicesly, we need this:
-            https://robotpy.readthedocs.io/projects/rev/en/stable/rev/SparkMaxPIDController.html
-            starting with the P gain being our "rotationSpeedScalar" and feedforward gain being 
-            gravityGain * cos(angle) should be similar behavior to what we have now.
-            Then we can play with the accel profile & D gain to slow down the initial speed,
-            and we can play with the I gain to increase the precision of the final angle.
+            currentPos = self.getArmPosition()  # Your method to calculate the current arm position
+            targetPos = self.cache.setpoint  # Target position set by `goto` method
+            gravity_feedforward_voltage = self.calcGravityComp()
+            error = targetPos - currentPos # Calculate error
+
+            if self.cache.topSensorValue and not self.holdingAtTop:
+                # If at top and not already holding, update target to current position and set flag
+                targetPos = currentPos
+                self.cache.setpoint = currentPos
+                self.holdingAtTop = True
+            elif not self.cache.topSensorValue:
+                # If not at top, clear the holding flag
+                self.holdingAtTop = False
+
+            # PID Controller already set up with P, I, D values
+            # Use setReference to move arm to target position
+            # Ensure setReference is using correct units matching your encoders
+            self.armRightPIDController.setReference(targetPos, rev.CANSparkLowLevel.ControlType.kSmartMotion, 0, gravity_feedforward_voltage, rev.SparkPIDController.ArbFFUnits.kVoltage)
+            self.armLeftPIDController.setReference(targetPos, rev.CANSparkLowLevel.ControlType.kSmartMotion, 0, gravity_feedforward_voltage, rev.SparkPIDController.ArbFFUnits.kVoltage)
+
+            # Logic for bottom limit switch as before
+            if self.cache.bottomSensorValue and error < 0:
+                self.stop()
+
+            # Additional logic for moving down from the top
+            # If the arm is holding at the top and a command is issued to move down (setpoint < current position), allow it
+            if self.holdingAtTop and self.cache.setpoint < currentPos:
+                self.holdingAtTop = False  # Clear the holding flag to allow movement
+
+
+
+    # def updateHardware(self):
+    #     # print("ArmSubsystem.updateHardware()")
+    #     if self.isActive:
+    #         print("ArmSubsystem.updateHardware() -- self.isActive == True")
+    #         delta = self.armTargetAngle - self.getArmPosition() # self.getArmPosition()
+    #         """If we want the arm to move smoothly and precicesly, we need this:
+    #         https://robotpy.readthedocs.io/projects/rev/en/stable/rev/SparkMaxPIDController.html
+    #         starting with the P gain being our "rotationSpeedScalar" and feedforward gain being 
+    #         gravityGain * cos(angle) should be similar behavior to what we have now.
+    #         Then we can play with the accel profile & D gain to slow down the initial speed,
+    #         and we can play with the I gain to increase the precision of the final angle.
             
-            """
-            P_voltage = delta * constants.armConsts.rotationSpeedScaler
-            gravity_feedforward_voltage = constants.armConsts.gravityGain * Derek.cos(self.getArmPosition())
-            self.armLeftPIDController.setP(constants.armConsts.rotationSpeedScaler)
-            self.armLeftPIDController.setI(0)
-            self.armLeftPIDController.setD(0)
-            self.armRightPIDController.setP(constants.armConsts.rotationSpeedScaler)
-            self.armRightPIDController.setI(0)
-            self.armRightPIDController.setD(0)
-            self.controlVoltage = P_voltage + gravity_feedforward_voltage
+    #         """
+    #         P_voltage = delta * constants.armConsts.rotationSpeedScaler
+    #         gravity_feedforward_voltage = constants.armConsts.gravityGain * Derek.cos(self.getArmPosition())
+    #         self.armLeftPIDController.setP(constants.armConsts.rotationSpeedScalerP)
+    #         self.armLeftPIDController.setI(0)
+    #         self.armLeftPIDController.setD(0)
+    #         self.armRightPIDController.setP(constants.armConsts.rotationSpeedScalerP)
+    #         self.armRightPIDController.setI(0)
+    #         self.armRightPIDController.setD(0)
+    #         self.controlVoltage = P_voltage + gravity_feedforward_voltage
             
-            #limit voltage if it's at the limit switch
-            if self.bottomLimit.get() and self.controlVoltage < 0.0:
-                self.controlVoltage = 0.0
-            elif self.topLimit.get() and self.controlVoltage > 0.0:
-                self.controlVoltage = 0.0
+    #         #limit voltage if it's at the limit switch
+    #         if self.bottomLimit.get() and self.controlVoltage < 0.0:
+    #             self.controlVoltage = 0.0
+    #         elif self.topLimit.get() and self.controlVoltage > 0.0:
+    #             self.controlVoltage = 0.0
                     
-            self.controlVoltage = ArmSubsystem.clipValue(self.controlVoltage, 2.0, -2.0)
-            # print(self.controlVoltage)
-            self.arm.setVoltage(self.controlVoltage)
+    #         self.controlVoltage = ArmSubsystem.clipValue(self.controlVoltage, 2.0, -2.0)
+    #         # print(self.controlVoltage)
+    #         self.arm.setVoltage(self.controlVoltage)
 
     def cacheSensors(self):
         self.cache.leftCurrentAmp = self.armLeft.getOutputCurrent()
         self.cache.rightCurrentAmp = self.armRight.getOutputCurrent()
         self.cache.leftEncoderValue = self.armLeftEncoder.getAbsolutePosition()
         self.cache.rightEncoderValue = self.armRightEncoder.getAbsolutePosition()
+        self.cache.leftPositionOffset = self.armLeftEncoder.getPositionOffset()
+        self.cache.rightPositionOffset = self.armRightEncoder.getPositionOffset()
         self.cache.leftRelativeEncoderValue = self.armLeftEncoderRelative.get()
         self.cache.rightRelativeEncoderValue = self.armRightEncoderRelative.get()
         self.cache.bottomSensorValue = self.bottomLimit.get()
         self.cache.topSensorValue = self.topLimit.get()
 
-    '''
-    def updateArmPosition(self):
-        print("ArmSubsystem.updateArmPosition()")
-        if self.isActive:
-            print("ArmSubsystem.updateArmPosition() -- self.isActive == True")
-            delta = self.armTargetAngle - self.getArmPosition() # self.getArmPosition()
-            """If we want the arm to move smoothly and precicesly, we need this:
-            https://robotpy.readthedocs.io/projects/rev/en/stable/rev/SparkMaxPIDController.html
-            starting with the P gain being our "rotationSpeedScalar" and feedforward gain being 
-            gravityGain * cos(angle) should be similar behavior to what we have now.
-            Then we can play with the accel profile & D gain to slow down the initial speed,
-            and we can play with the I gain to increase the precision of the final angle.
-            
-            """
-            P_voltage = delta * constants.armConsts.rotationSpeedScaler
-            gravity_feedforward_voltage = constants.armConsts.gravityGain * Derek.cos(self.getArmPosition())
-            self.controlVoltage = P_voltage + gravity_feedforward_voltage
-            
-            #limit voltage if it's at the limit switch
-            if self.bottomLimit.get() and self.controlVoltage < 0.0:
-                self.controlVoltage = 0.0
-            elif self.topLimit.get() and self.controlVoltage > 0.0:
-                self.controlVoltage = 0.0
-                    
-            self.controlVoltage = ArmSubsystem.clipValue(self.controlVoltage, 2.0, -2.0)
-            # print(self.controlVoltage)
-            self.arm.setVoltage(self.controlVoltage)
-    '''
-
-    '''
-    In the documentation it states this:
-
-    GetAbsolutePosition() - GetPositionOffset() will give an encoder absolute position 
-    relative to the last reset. This could potentially be negative, which needs to be 
-    accounted for.
-
-    Should we return the absolute value of the result?
-    '''
     def getArmRightPosition(self):
-        return self.armRightEncoder.getAbsolutePosition() - self.armRightEncoder.getPositionOffset()
+        # return self.armRightEncoder.getAbsolutePosition() - self.armRightEncoder.getPositionOffset()
+        return self.cache.rightEncoderValue - self.cache.rightPositionOffset
 
     def getArmLeftPosition(self):
-        return self.armLeftEncoder.getAbsolutePosition() - self.armLeftEncoder.getPositionOffset()
+        # return self.armLeftEncoder.getAbsolutePosition() - self.armLeftEncoder.getPositionOffset()
+        return self.cache.leftEncoderValue - self.cache.leftPositionOffset
     
     def zeroEncoders(self):
         rightOffset = self.armRightEncoder.getAbsolutePosition()
@@ -182,121 +226,6 @@ class ArmSubsystem(commands2.Subsystem):
     def getArmPosition(self):
         return constants.convert.rev2rad((self.getArmRightPosition() - self.getArmLeftPosition()) / 2)
     
-
-    '''
-    def shootHigh(self):
-        pass
-        """
-        pseudo code to raise the arm to shoot at the high goal
-
-        // start the shooter motors running them at full speed
-        self.topShooter.set(1)
-        self.bottomShooter.set(1)
-
-        // wait until both motors are up to full speed as determined by some minimal RPM(?) value for each
-        while topSpeed < 2500 or bottomSpeed < 2500{
-            
-        }
-
-        // once both shooting motors are at full speed, push the note into the shooter wheels by starting the intake motor
-        self.intake.set(1)
-
-        // once the photo sensor no longer sees the note then stop the shooter. 
-        // NOTE: Might be better to stop the shooter and intake motors when the driver releases the "shoot" button
-        while isNoteLoaded(){
-            
-        }
-
-        // stop the shooter and intake motors
-        self.topShooter.set(0)
-        self.bottomShooter.set(0)
-        self.intake.set(0)
-        
-        """
-    '''
-
-    '''
-    def pickup(self):
-        pass
-        """
-        
-        if not isNoteLoaded(){
-            // if the photo sensor does not detect a note being loaded then start the intake motors
-            self.intake.set(0.5)
-
-        } else {
-            // else the photo sensor detected a note so stop the intake motors.  NOTE: May need an override button
-            self.intake.set(0)
-        }
-
-        """
-    '''
-
-    '''
-    def lowerArmForPickup():
-        pass
-        """
-        (1) detect the current arm position
-        (2) start the motors to move the arm down into the "pickup" position - 
-            there will be a limit switch to detect when the arm contacts the lower cross brace
-        (3) when the limit switch is tripped (value is true) stop the arm motors
-        NOTE: one idea was to scale the arm speed by the delta angle (angle between starting position and current position)
-            so that as the arm gets closer to its final position the arm speed slows down
-        """
-    '''
-        
-    '''
-    def isNoteLoaded(self):
-        return self.noteSensor.get()
-    '''
-
-
-    
-    '''
-    def zeroEncodersRelative(self):
-        self.armRightEncoderRelative.reset()
-        self.armLeftEncoderRelative.reset()
-        self.motorArmLeftEncoder.setPosition(0.0)
-        self.motorArmRightEncoder.setPosition(0.0)
-    '''
-
-    '''
-    def getArmPositionRelative(self):
-        """returns the arm's position in rad, averaged between the two encoders"""
-        # posRight = constants.convert.rev2rad(constants.convert.count2rev(self.armRightEncoderRelative.get()))
-        # posLeft = constants.convert.rev2rad(constants.convert.count2rev(self.armLeftEncoderRelative.get()))
-        posRight = constants.convert.rev2rad(self.motorArmRightEncoder.getPosition()/constants.armConsts.motorToArmGearRatio)
-        # posLeft = self.motorArmLeftEncoder.getPosition()
-        
-        return posRight
-    '''
-
-
-
-
-        
-    ''' 
-    def shooterIdle(self):
-        self.intake.set(0.0)
-        self.topShooter.set(0.0)
-        self.bottomShooter.set(0.0)
-    # todo make zeroEncoders method
-    '''
-
-    '''
-    def intakeNote(self):
-        self.intake.set(0.75)
-    '''
-
-    ''' 
-    def OuttakeNote(self):
-        self.intake.set(-0.75)
-    '''
-        
-    '''
-    def pewpew(self):
-        self.shooters.set(-0.75)   
-    '''
         
     '''
     def __str__(self):

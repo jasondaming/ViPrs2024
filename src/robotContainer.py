@@ -79,15 +79,24 @@ class RobotContainer:
 
 
     def configureButtonBindings(self):
-        # Bind the collectAndRetractCmd object to the B button press
+        # Button A binding
+
+        # Button B binding
         # self.driverController.b().toggleOnTrue(self.collectAndRetractCmd)
         # self.driverController.b().toggleOnTrue(self.collectCmd)  # Test simple intake
         # self.driverController.b().onTrue(IntakeAndRetractCommand(self.intake, -0.5, 2.0))
         self.driverController.b().onTrue(self.intakeCommandGroup)
 
+        # Button X binding
         self.driverController.x().onTrue(self.expelNoteCmd)
 
-        # Setting 
+        # Button Y binding
+
+        # Right bumper binding
+
+        # Left bumper binding
+
+        # Right trigger binding 
         self.rightTriggerPressed.whileTrue(self.startShooterCmd)
         self.rightTriggerPressed.negate().whileTrue(SequentialCommandGroup(
             self.deliverNoteCmd,
@@ -95,24 +104,13 @@ class RobotContainer:
             self.stopIntakeCmd
         ))
 
-        # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-        # !!!! TESTING CODE --- TEMPORARY
-        # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-        # print(f"self.arm -> {self.arm}")
-        self.driverController.a().whileTrue( 
-            commands2.cmd.run(
-                #lambda: print("A button pressed, going to 0.4"), self.arm.goto(0.4)
-                lambda: self.arm.goto(0.4)
-            )
-        ).whileFalse(
-            commands2.cmd.run(
-                #lambda: print("A button not pressed, going to 0.0"), self.arm.goto(0.0)
-                lambda: self.arm.goto(0.0)
-            )
-        )
-        # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-        # !!!! TESTING CODE --- TEMPORARY
-        # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        # Left trigger binding
+
+        # Start button binding
+
+        # "Back" button binding. (This looksl ike the menu button)
+
+        
 
     def updateHardware(self):
         self.robotDrive.updateHardware()

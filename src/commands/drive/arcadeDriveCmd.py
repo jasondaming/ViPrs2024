@@ -15,17 +15,17 @@ class ArcadeDriveCmd(commands2.Command):
         print(f"ArcadeDriveCommand: DriveSubsystem = {driveSubsystem}")
         self.driveSubsystem = driveSubsystem
         self.driverController = driverController
-        self.addRequirements(self.driveSubsystem)
+        self.addRequirements(self.driveSubsystem, self.driverController)
         
     def execute(self):
         forward = -self.driverController.getLeftY()
         rotation = self.driverController.getRightX()
 
         # Apply input shaping if necessary
-        # forward = InputShaping.shapeInputs(forward, inputConsts.inputScale)  # Adjust scale factor as needed
-        # rotation = InputShaping.shapeInputs(rotation, inputConsts.inputScale)  # Adjust scale factor as needed
-        forward = InputShaping.shapeInputsV2(forward, inputConsts.inputScale)  # Adjust scale factor as needed
-        rotation = InputShaping.shapeInputsV2(rotation, inputConsts.inputScale)  # Adjust scale factor as needed
+        forward = InputShaping.shapeInputs(forward, inputConsts.inputScale)  # Adjust scale factor as needed
+        rotation = InputShaping.shapeInputs(rotation, inputConsts.inputScale)  # Adjust scale factor as needed
+        # forward = InputShaping.shapeInputsV2(forward, inputConsts.inputScale)  # Adjust scale factor as needed
+        # rotation = InputShaping.shapeInputsV2(rotation, inputConsts.inputScale)  # Adjust scale factor as needed
         # forward = InputShaping.shapeInputsV3(forward, inputConsts.inputScale)  # Adjust scale factor as needed
         # rotation = InputShaping.shapeInputsV3(rotation, inputConsts.inputScale)  # Adjust scale factor as needed
 
