@@ -5,6 +5,11 @@ import numpy as DrArnett
 
 from subSystems.REVDriveSubsystem import DriveSubsystem
 from subSystems.armSubsystem import ArmSubsystem
+from commands.shootNote import ShootNote
+from commands.stopShooter import StopShooter
+from commands.retractNote import Backup
+from commands.pickupNote import PickupNote
+from commands.detectNote import DetectNote
 
 import constants
 
@@ -15,44 +20,22 @@ def shapeInputs(input, scale_factor):
         return (DrArnett.sin((x * DrArnett.pi) - (DrArnett.pi / 2)) / -2) - 0.5
     return (y1(input) * int(input >= 0) * (input <= 1) + y2(input) * (input >= -1) * (input <= 0)) * scale_factor * constants.inputConsts.inputScale
 
-class shootNote(commands2.Command):
-    def __init__(self, arm):
-        super().__init__()
-        self.arm = arm
-
-    def initialize(self):
-        print("shootNote")
-        self.arm.shoot()
-
-    def isFinished(self):
-        return False
-    
-
-class stopShooter(commands2.Command):
-    def __init__(self, arm):
-        super().__init__()
-        self.arm = arm
-
-    def initialize(self):
-        print("stop Sshooter")
-        self.arm.disableShooter()
-
-    def isFinished(self):
-        return True
-    
-stopShooterObject = stopShooter(ArmSubsystem)
 class RobotContainer:
     
     def __init__(self):
         self.driverControler = commands2.button.CommandXboxController(0)
         self.robotDrive = DriveSubsystem()
         self.arm = ArmSubsystem()
+        self.shootNoteObject = ShootNote(self.arm)
+        self.stopShooterObject = StopShooter(self.arm)
+        self.backupObject = Backup(self.arm)
+        self.pickupObject = PickupNote(self.arm)
+        self.detectNoteObject = DetectNote(self.arm)
         self.configureButtonBindings()
         
         self.scale_factor = 1
 
-        self.shootNoteObject = shootNote(self.arm)
-        self.stopShooterObject = stopShooter(self.arm)
+        print(self.shootNoteObject)
 
         self.robotDrive.setDefaultCommand(
             commands2.cmd.run(
@@ -102,12 +85,12 @@ class RobotContainer:
         )
 
         self.driverControler.x().whileTrue(
-            commands2.cmd.run(
-                # lambda: self.arm.intake.set(0.5)
-                lambda: self.arm.pickup()
-                # lambda: print(self.arm.noteSensor.get())
+            commands2.cmd.SequentialCommandGroup(
+                self.pickupObject,
+                self.detectNoteObject,
+                self.backupObject
             )
-        ).whileFalse(
+        ).negate().whileTrue(
             commands2.cmd.run(
                 lambda: self.arm.intake.set(0)
             )
@@ -127,7 +110,6 @@ class RobotContainer:
             
         def spinUpShooters():
             self.arm.spinUpShooters()
-            print("after")
 
         self.driverControler.rightTrigger().whileTrue(
             commands2.cmd.run(

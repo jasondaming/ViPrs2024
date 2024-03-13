@@ -174,17 +174,9 @@ class ArmSubsystem(commands2.Subsystem):
         """
 
     def pickup(self):
-        # self.pickupOveride = False
-        # print(self.noteSensor.get())
-        # while (not self.pickupOveride) and (self.noteSensor.get()):
-        if (self.noteSensor.get()):
-            # if the photo sensor does not detect a note being loaded then start the intake motors
-            self.intake.set(constants.armConsts.intakeSpeed)
-            # print(self.pickupOveride)
-        else:
-            self.intake.set(0)
-        # print(self.intake.get())
-            # else the photo sensor detected a note so stop the intake motors. PickupOveride can also stop the motors
+        # set the speed of the intake motor to feed the note in
+        self.intake.set(constants.armConsts.intakeSpeed)
+       
 
     def lowerArmForPickup():
         pass
@@ -198,7 +190,7 @@ class ArmSubsystem(commands2.Subsystem):
         """
 
     def isNoteLoaded(self):
-        return self.noteSensor.get()
+        return not self.noteSensor.get()
     
     def zeroEncoders(self):
         rightOffset = self.armRightEncoder.getAbsolutePosition()

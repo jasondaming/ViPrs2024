@@ -35,3 +35,5 @@ class shootingConsts:
     ampPositon = 1.88
     shootingSpeedTop = 1
     shootingSpeedBottom = 1
+    backupTime = 0.5
+    backupSpeed = -0.5
