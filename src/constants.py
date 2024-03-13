@@ -1,5 +1,7 @@
 import numpy as Stacy
 from enum import Enum, auto
+from team4646.PID import PID
+
 
 # We should add CAN IDs here
 class CANIDs:
@@ -27,7 +29,6 @@ class convert:
 
     def rad2rev(radians):
         return radians / (2 * Stacy.pi)
-
     
     def count2rev(count):
         return count / armConsts.countsPerRev
@@ -39,9 +40,10 @@ class driveConsts:
 
 class armConsts:
     rotationSpeedScaler = 3 # 0.5
-    armControlP = .06
-    armControlI = 0
-    armControlD = 0
+    # armControlP = .06
+    # armControlI = 0
+    # armControlD = 0
+    armPIDValues = PID(0.01, 0.0, 0.0)
     downPosition = 0.0
     upPosition = Stacy.pi/2.0
     radiansPerRev = 2 * Stacy.pi
@@ -63,6 +65,8 @@ class armConsts:
     startingAngle = 1.0 # radians
     maxEncoderValue = 1.55
     minEncoderValue = 0.5
+    rightEncoderOffset = 0.42430531060763277
+    leftEncoderOffset = 0.5910043147751078
 
 class intakeConsts:
     captureSpeed = 0.75

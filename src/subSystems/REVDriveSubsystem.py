@@ -32,7 +32,7 @@ class DriveSubsystem(commands2.Subsystem):
         self.isSlowMode = False
         self.isReverseMode = False
 
-        self.gyroAccl = navx.AHRS(wpilib.SPI.Port.kMXP)
+        #self.gyroAccl = navx.AHRS(wpilib.SPI.Port.kMXP)
         # TODO: initialize gyro here
         
         # self.leftFront = rev.CANSparkMax(constants.CANIDs.leftDriveSparkFront, rev.CANSparkMax.MotorType.kBrushless)
@@ -102,7 +102,7 @@ class DriveSubsystem(commands2.Subsystem):
         self.robotDrive.arcadeDrive(self.cache.forwardSetpoint, self.cache.rotationSetpoint)
 
     def cacheSensors(self):
-        self.cache.gyroAngle = self.gyroAccl.getAngle()
+        # self.cache.gyroAngle = self.gyroAccl.getAngle()
         self.cache.leftFrontCurrentAmp = self.leftFront.getOutputCurrent()
         self.cache.leftBackCurrentAmp = self.leftBack.getOutputCurrent()
         self.cache.rightFrontCurrentAmp = self.rightFront.getOutputCurrent()

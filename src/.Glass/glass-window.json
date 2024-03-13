@@ -1,0 +1,64 @@
+{
+  "Docking": {
+    "Data": [
+      "DockSpace ID=0x8B93E3BD Window=0xA787BDB4 Pos=0,25 Size=2560,1344 CentralNode=1"
+    ]
+  },
+  "MainWindow": {
+    "GLOBAL": {
+      "fps": "120",
+      "height": "768",
+      "maximized": "1",
+      "style": "0",
+      "userScale": "4",
+      "width": "1024",
+      "xpos": "0",
+      "ypos": "23"
+    }
+  },
+  "Table": {
+    "0xE56EC1C2,4": {
+      "Column 0  Weight": "1.0000",
+      "Column 1  Weight": "1.0000",
+      "Column 2  Weight": "1.0000",
+      "Column 3  Weight": "1.0000"
+    }
+  },
+  "Window": {
+    "###NetworkTables": {
+      "Collapsed": "0",
+      "Pos": "1153,33",
+      "Size": "790,428"
+    },
+    "###NetworkTables Info": {
+      "Collapsed": "0",
+      "Pos": "395,35",
+      "Size": "731,382"
+    },
+    "###NetworkTables Log": {
+      "Collapsed": "0",
+      "Pos": "250,615",
+      "Size": "855,576"
+    },
+    "###NetworkTables Settings": {
+      "Collapsed": "0",
+      "Pos": "2040,33",
+      "Size": "471,211"
+    },
+    "###Plot <0>": {
+      "Collapsed": "0",
+      "Pos": "1175,574",
+      "Size": "700,400"
+    },
+    "Debug##Default": {
+      "Collapsed": "0",
+      "Pos": "60,60",
+      "Size": "400,400"
+    },
+    "DockSpaceViewport_11111111": {
+      "Collapsed": "0",
+      "Pos": "0,25",
+      "Size": "2560,1344"
+    }
+  }
+}

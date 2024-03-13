@@ -84,9 +84,12 @@ class MyRobot(commands2.TimedCommandRobot):
         # print("testPeriodic()")
         pass
 
+    def simulationInit(self):
+        print("Simulation init...")
+
     def SimulationPeriodic(self):
         """"This function is called periodically during the simulation mode"""
-        # print("SimulationPeriodic()")
+        print("SimulationPeriodic()")
 
 if __name__ == "__main__":
     wpilib.run(MyRobot)

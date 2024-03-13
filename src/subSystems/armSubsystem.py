@@ -1,3 +1,4 @@
+import time
 import wpilib
 import wpilib.drive
 import commands2
@@ -7,6 +8,10 @@ import numpy as Derek
 
 from team254.SparkMaxFactory import SparkMaxFactory
 from team254.LazySparkMax import LazySparkMax
+
+from team4646.PID import PID
+
+from team1329.SimplePIDController import SimplePIDController
 
 
 class ArmSubsystem(commands2.Subsystem):
@@ -19,16 +24,18 @@ class ArmSubsystem(commands2.Subsystem):
             self.leftEncoderValue = 0.0
             self.leftPositionOffset = 0.0
             self.rightPositionOffset = 0.0
-            self.rightRelativeEncoderValue = 0.0
-            self.leftRelativeEncoderValue = 0.0
+            # self.rightRelativeEncoderValue = 0.0
+            # self.leftRelativeEncoderValue = 0.0
             self.bottomSensorValue = None
             self.topSensorValue = None
             self.maxEncoderValue = 0.0
             self.minEncoderValue = 0.0
+            self.controlLoopTime = 0.0
 
     def __init__(self):
         super().__init__()
         self.cache = self.Cache()
+        self.lastUpdateTime = time.time()
 
         self.holdingAtTop = False  # Add a flag to indicate when holding position at top
 
@@ -39,17 +46,21 @@ class ArmSubsystem(commands2.Subsystem):
         self.arm = wpilib.MotorControllerGroup(self.armRight, self.armLeft)
         self.armRight.setInverted(True) # this can be specified by passing in a boolean to the createDefaultSparkMax method
         
+        # Can only use built-in PID controller if we are using: a) the encoder built into the 
+        # NEO motor _or_ an external encoder attached to the data port on the Spark Max
+        # Currently we do not have it hooked to the Spark Max
+
         # self.armRightPIDController = self.armRight.getPIDController()
         # self.armLeftPIDController = self.armLeft.getPIDController()
-        self.armRightPIDController = self.armRight._pid_controller
-        self.armLeftPIDController = self.armLeft._pid_controller
+        # self.armRightPIDController = self.armRight._pid_controller
+        # self.armLeftPIDController = self.armLeft._pid_controller
 
-        self.armRightPIDController.setP(constants.armConsts.armControlP)
-        self.armRightPIDController.setI(constants.armConsts.armControlI)
-        self.armRightPIDController.setD(constants.armConsts.armControlD)
-        self.armLeftPIDController.setP(constants.armConsts.armControlP)
-        self.armLeftPIDController.setI(constants.armConsts.armControlI)
-        self.armLeftPIDController.setD(constants.armConsts.armControlD)
+        # self.armRightPIDController.setP(constants.armConsts.armControlP)
+        # self.armRightPIDController.setI(constants.armConsts.armControlI)
+        # self.armRightPIDController.setD(constants.armConsts.armControlD)
+        # self.armLeftPIDController.setP(constants.armConsts.armControlP)
+        # self.armLeftPIDController.setI(constants.armConsts.armControlI)
+        # self.armLeftPIDController.setD(constants.armConsts.armControlD)
 
         # Set the acceleration strategy for both PID controllers
         # self.armRightPIDController.setSmartMotionAccelStrategy(rev.SparkMaxPIDController.AccelStrategy.kSCurve, 0)
@@ -58,6 +69,10 @@ class ArmSubsystem(commands2.Subsystem):
         # self.armLeftPIDController.setSmartMotionMaxVelocity(constants.armConsts.maxVelocity, constants.armConsts.slotID)
         # self.armRightPIDController.setSmartMotionMaxAccel(constants.armConsts.maxAcc, constants.armConsts.slotID)
         # self.armLeftPIDController.setSmartMotionMaxAccel(constants.armConsts.maxAcc, constants.armConsts.slotID)
+
+        self.armLeftSPIDController = SimplePIDController(constants.armConsts.armPIDValues)
+        self.armRightSPIDController = SimplePIDController(constants.armConsts.armPIDValues)
+
 
         self.armRight.IdleMode(rev.CANSparkBase.IdleMode.kCoast)
         self.armLeft.IdleMode(rev.CANSparkBase.IdleMode.kCoast)
@@ -69,20 +84,23 @@ class ArmSubsystem(commands2.Subsystem):
         self.armLeftEncoder = wpilib.DutyCycleEncoder(constants.armConsts.leftEncoder)
 
         # adding relative encoders:
-        self.armRightEncoderRelative = wpilib.Encoder(
-            constants.armConsts.rightRelativeEncoderA,
-            constants.armConsts.rightRelativeEncoderB
-        )
-        self.armLeftEncoderRelative = wpilib.Encoder(
-            constants.armConsts.leftRelativeEncoderA,
-            constants.armConsts.leftRelativeEncoderB
-        )
-        self.armLeftEncoderRelative.setReverseDirection(True)
+        # self.armRightEncoderRelative = wpilib.Encoder(
+        #     constants.armConsts.rightRelativeEncoderA,
+        #     constants.armConsts.rightRelativeEncoderB
+        # )
+        # self.armLeftEncoderRelative = wpilib.Encoder(
+        #     constants.armConsts.leftRelativeEncoderA,
+        #     constants.armConsts.leftRelativeEncoderB
+        # )
+        # self.armLeftEncoderRelative.setReverseDirection(True)
 
-        self.armRightEncoder.setPositionOffset(0.45699721142493027)
-        self.armLeftEncoder.setPositionOffset(0.39403500985087525)
+        # !!!!!!!!!!!!!!!!!!!!
+        # THIS APPARENTLY DOESN'T WORK
+        # self.armRightEncoder.setPositionOffset(constants.armConsts.rightEncoderOffset)
+        # self.armLeftEncoder.setPositionOffset(constants.armConsts.leftEncoderOffset)
+        # !!!!!!!!!!!!!!!!!!!!
 
-        self.zeroEncoders()
+        # self.zeroEncoders()
 
         # bottom limit switch to detect if the arm is all the way down
         self.bottomLimit = wpilib.DigitalInput(constants.sensorConsts.armBottomLimit) # change channel later
@@ -93,7 +111,7 @@ class ArmSubsystem(commands2.Subsystem):
 
         self.isActive = False
 
-    def clipValue(value, upperBound, lowerBound):
+    def clipValue(self, value, upperBound, lowerBound):
         assert upperBound > lowerBound
         if value > upperBound:
             return upperBound
@@ -103,10 +121,13 @@ class ArmSubsystem(commands2.Subsystem):
             return value
 
     def goto(self, angle):
-        print(f"ArmSubsystem.goto({angle}) -- self.cache.setpoint = {self.cache.setpoint}")
         self.isActive = True
         # self.armTargetAngle = angle
         self.cache.setpoint = constants.convert.rad2rev(angle)
+        self.armLeftSPIDController.reset()
+        self.armRightSPIDController.reset()
+        print(f"ArmSubsystem.goto({angle}) -- self.cache.setpoint = {self.cache.setpoint}")
+        
 
     def stop(self):
         """
@@ -126,22 +147,69 @@ class ArmSubsystem(commands2.Subsystem):
         # to maintain that control framework, you could set the reference to the current
         # position with zero feedforward to hold position without additional input.
         # This is more of a "soft stop" that leverages the PID controller.
-        gravity_compensation = self.calcGravityComp()
+        gravity_compensation = self.calcGravityComp(self.getArmPosition())
         # self.armRightPIDController.setReference(currentPos, rev.CANSparkLowLevel.ControlType.kPosition, 0, gravity_compensation, rev.SparkPIDController.ArbFFUnits.kVoltage)
         # self.armLeftPIDController.setReference(currentPos, rev.CANSparkLowLevel.ControlType.kPosition, 0, gravity_compensation, rev.SparkPIDController.ArbFFUnits.kVoltage)
-        self.armRightPIDController.setReference(currentPos, rev.CANSparkLowLevel.ControlType.kPosition, 0, gravity_compensation)
-        self.armLeftPIDController.setReference(currentPos, rev.CANSparkLowLevel.ControlType.kPosition, 0, gravity_compensation)
+        # self.armRightPIDController.setReference(currentPos, rev.CANSparkLowLevel.ControlType.kPosition, 0, gravity_compensation)
+        # self.armLeftPIDController.setReference(currentPos, rev.CANSparkLowLevel.ControlType.kPosition, 0, gravity_compensation)
 
-    def calcGravityComp(self):
-        return constants.armConsts.gravityGain * Derek.cos(self.getArmPosition())
+    def calcGravityComp(self, armPos):
+
+        return constants.armConsts.gravityGain * Derek.cos(armPos)
 
     def updateHardware(self):
+        # print("armSubsystem.updateHardware()")
+        if self.isActive:
+            # print("armSubsystem.updateHardware() - self.isActive = True")
+            print(f"armSubsystem.updateHardware() - getArmPosition()={self.getArmPosition()}")
+            now = time.time()
+            dt = now - self.lastUpdateTime
+            self.lastUpdateTime = now
+
+            currentPosRight = self.getArmRightPosition()
+            currentPosLeft = self.getArmLeftPosition()
+            currentPosAverage = (currentPosRight + currentPosLeft) / 2  # Average position of both sides
+
+            # Calculate the arbitrary feedforward term based on the current position
+            feedforward = self.calcGravityComp(currentPosAverage)
+
+            # Safety checks for limit switches
+            # if self.bottomLimit.get() and self.cache.setpoint < currentPosAverage:
+            #     print("... Bottom limit safety check")
+            #     self.stop()
+            #     return
+
+            # if self.cache.topSensorValue:
+            #     print("...  Top limit safety check...")
+            #     if not self.holdingAtTop:
+            #         print("... not holding at the top")
+            #         self.holdingAtTop = True
+            #         self.stop()
+            #         return
+            # else:
+            #     self.holdingAtTop = False
+
+            # Update the setpoint for both PID controllers with feedforward
+            self.armRightSPIDController.set_setpoint(self.cache.setpoint, feedforward)
+            self.armLeftSPIDController.set_setpoint(self.cache.setpoint, feedforward)
+
+            # Calculate the control effort
+            controlEffortRight = self.armRightSPIDController.update(currentPosRight, dt, feedforward)
+            controlEffortLeft = self.armLeftSPIDController.update(currentPosLeft, dt, feedforward)
+
+            # Apply the control effort to the motors
+            self.armRight.set(self.clipValue(controlEffortRight, 2.0, -2.0))
+            self.armLeft.set(self.clipValue(controlEffortLeft, 2.0, -2.0))
+
+            print(f"armSubsystem().updateHardware() - controlEffortRight/Left={controlEffortRight}, {controlEffortLeft}")
+
+        '''
         print(f"armSubsystem.updateHardware() - getArmPosition()={self.getArmPosition()}")
         if self.isActive:
-            currentPos = self.getArmPosition()  # Your method to calculate the current arm position
+            # currentPos = self.getArmPosition()  # Your method to calculate the current arm position
             targetPos = self.cache.setpoint  # Target position set by `goto` method
             gravity_feedforward_voltage = self.calcGravityComp()
-            error = targetPos - currentPos # Calculate error
+            # error = targetPos - currentPos # Calculate error   # Not needed since it's calculated in the PID Controller
 
             if self.cache.topSensorValue and not self.holdingAtTop:
                 # If at top and not already holding, update target to current position and set flag
@@ -163,9 +231,14 @@ class ArmSubsystem(commands2.Subsystem):
             print(f"armSubsystem.updateHardware() - currentPos={currentPos}, targetPos={targetPos}, ctrl={rev.CANSparkLowLevel.ControlType.kPosition}, pidSlot={constants.armConsts.slotID}, arbFeedforward={gravity_feedforward_voltage}")
             # self.armRightPIDController.setReference(targetPos, rev.CANSparkLowLevel.ControlType.kSmartMotion, pidSlot=0, arbFeedforward=gravity_feedforward_voltage, arbFFUnits=rev.SparkPIDController.ArbFFUnits.kVoltage)
             # self.armLeftPIDController.setReference(targetPos, rev.CANSparkLowLevel.ControlType.kSmartMotion, pidSlot=0, arbFeedforward=gravity_feedforward_voltage, arbFFUnits=rev.SparkPIDController.ArbFFUnits.kVoltage)
-            self.armRightPIDController.setReference(targetPos, rev.CANSparkLowLevel.ControlType.kPosition, pidSlot=constants.armConsts.slotID, arbFeedforward=gravity_feedforward_voltage)
-            self.armLeftPIDController.setReference(targetPos, rev.CANSparkLowLevel.ControlType.kPosition, pidSlot=constants.armConsts.slotID, arbFeedforward=gravity_feedforward_voltage)
-
+            # self.armRightPIDController.setReference(targetPos, rev.CANSparkLowLevel.ControlType.kPosition, pidSlot=constants.armConsts.slotID, arbFeedforward=gravity_feedforward_voltage)
+            # self.armLeftPIDController.setReference(targetPos, rev.CANSparkLowLevel.ControlType.kPosition, pidSlot=constants.armConsts.slotID, arbFeedforward=gravity_feedforward_voltage)
+            
+            self.armLeftSPIDController.set_setpoint(self.cache.setpoint)
+            self.armRightSPIDController.set_setpoint(self.cache.setpoint)   
+            
+            controlEffortLeft = self.armLeftSPIDController.update(currentPos)
+           
 
             # Logic for bottom limit switch as before
             if self.cache.bottomSensorValue and error < 0:
@@ -175,7 +248,7 @@ class ArmSubsystem(commands2.Subsystem):
             # If the arm is holding at the top and a command is issued to move down (setpoint < current position), allow it
             if self.holdingAtTop and self.cache.setpoint < currentPos:
                 self.holdingAtTop = False  # Clear the holding flag to allow movement
-
+    '''
 
 
     # def updateHardware(self):
@@ -214,32 +287,46 @@ class ArmSubsystem(commands2.Subsystem):
     def cacheSensors(self):
         self.cache.leftCurrentAmp = self.armLeft.getOutputCurrent()
         self.cache.rightCurrentAmp = self.armRight.getOutputCurrent()
-        self.cache.leftEncoderValue = self.armLeftEncoder.getAbsolutePosition()
-        self.cache.rightEncoderValue = self.armRightEncoder.getAbsolutePosition()
+        # Negate left encoder value because it goes in the opposite direction
+        self.cache.leftEncoderValue = -1.0 * (self.armLeftEncoder.getAbsolutePosition() - constants.armConsts.leftEncoderOffset)
+        self.cache.rightEncoderValue = self.armRightEncoder.getAbsolutePosition() - constants.armConsts.rightEncoderOffset
         self.cache.leftPositionOffset = self.armLeftEncoder.getPositionOffset()
         self.cache.rightPositionOffset = self.armRightEncoder.getPositionOffset()
-        self.cache.leftRelativeEncoderValue = self.armLeftEncoderRelative.get()
-        self.cache.rightRelativeEncoderValue = self.armRightEncoderRelative.get()
+        # self.cache.leftRelativeEncoderValue = self.armLeftEncoderRelative.get()
+        # self.cache.rightRelativeEncoderValue = self.armRightEncoderRelative.get()
         self.cache.bottomSensorValue = self.bottomLimit.get()
         self.cache.topSensorValue = self.topLimit.get()
+        print(f"lEV: {self.cache.leftEncoderValue}, rEV: {self.cache.rightEncoderValue}")
+        print(f"getArmPosition(): {self.getArmPosition()}")
 
     def getArmRightPosition(self):
         # return self.armRightEncoder.getAbsolutePosition() - self.armRightEncoder.getPositionOffset()
-        return self.cache.rightEncoderValue - self.cache.rightPositionOffset
+        return self.cache.rightEncoderValue # - self.cache.rightPositionOffset
 
     def getArmLeftPosition(self):
         # return self.armLeftEncoder.getAbsolutePosition() - self.armLeftEncoder.getPositionOffset()
-        return self.cache.leftEncoderValue - self.cache.leftPositionOffset
+        return self.cache.leftEncoderValue # - self.cache.leftPositionOffset
     
-    def zeroEncoders(self):
-        rightOffset = self.armRightEncoder.getAbsolutePosition()
-        leftOffset = self.armLeftEncoder.getAbsolutePosition()
-        self.armRightEncoder.setPositionOffset(rightOffset)
-        self.armLeftEncoder.setPositionOffset(leftOffset)
-        print(f"right encoder offset: {self.armRightEncoder.getPositionOffset()} | left encoder offset: {self.armLeftEncoder.getPositionOffset()}")
+    # def zeroEncoders(self):
+    #     rightOffset = self.armRightEncoder.getAbsolutePosition()
+    #     leftOffset = self.armLeftEncoder.getAbsolutePosition()
+    #     self.armRightEncoder.setPositionOffset(rightOffset)
+    #     self.armLeftEncoder.setPositionOffset(leftOffset)
+    #     print(f"right encoder offset: {self.armRightEncoder.getPositionOffset()} | left encoder offset: {self.armLeftEncoder.getPositionOffset()}")
     
     def getArmPosition(self):
-        return constants.convert.rev2rad((self.getArmRightPosition() - self.getArmLeftPosition()) / 2)
+        # return constants.convert.rev2rad((self.getArmRightPosition() - self.getArmLeftPosition()) / 2)
+        # Average the encoder values, considering any necessary conversion from encoder units to radians.
+        # This example assumes the encoder values are already in a useful form and just averages them.
+        average_encoder_value = (self.getArmRightPosition() + self.getArmLeftPosition()) / 2
+        
+        # Convert the average encoder value to radians or the unit of measure you're using for the arm position.
+        # This might involve converting from encoder fractions to radians, taking into account the total range of motion.
+
+        # arm_position_radians = convertEncoderValueToRadians(average_encoder_value)
+        arm_position_radians = constants.convert.rev2rad(average_encoder_value)
+
+        return arm_position_radians
     
     def isPositionSafe(self, position):
         # Example safe bounds, adjust based on your system's specifics
