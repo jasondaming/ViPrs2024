@@ -20,7 +20,7 @@ class IntakeSubsystem(commands2.Subsystem):
         self.cache = self.Cache()
 
         self.intake = SparkMaxFactory.createDefaultSparkMax(constants.CANIDs.intakeSpark)
-        self.intake.setIdleMode(rev.CANSparkBase.IdleMode.kBrake)
+        self.intake.setIdleMode(rev.CANSparkMax.IdleMode.kBrake)
 
         self.intakeEncoder = self.intake.getEncoder() 
         
@@ -31,7 +31,7 @@ class IntakeSubsystem(commands2.Subsystem):
         return self.cache.currentSpeed
 
     def setIntakeSpeed(self, speed):
-        # self.intake.set(rev.CANSparkLowLevel.ControlType.kDutyCycle, speed)
+        # self.intake.set(rev.CANSparkMaxLowLevel.ControlType.kDutyCycle, speed)
         self.cache.setpoint = speed
 
     def getIntakeEncoder(self):

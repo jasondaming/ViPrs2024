@@ -31,8 +31,8 @@ class ShooterSubsystem(commands2.Subsystem):
         self.bottomShooter.setInverted(True)
         self.shooters = wpilib.MotorControllerGroup(self.topShooter, self.bottomShooter)
 
-        self.topShooter.IdleMode(rev.CANSparkBase.IdleMode.kCoast)
-        self.bottomShooter.IdleMode(rev.CANSparkBase.IdleMode.kCoast)
+        self.topShooter.IdleMode(rev.CANSparkMax.IdleMode.kCoast)
+        self.bottomShooter.IdleMode(rev.CANSparkMax.IdleMode.kCoast)
 
         self.topShooterEncoder = self.topShooter.getEncoder()
         self.bottomShooterEncoder = self.bottomShooter.getEncoder()
@@ -59,8 +59,8 @@ class ShooterSubsystem(commands2.Subsystem):
         return self.cache.topEncoderValue, self.cache.bottomEncoderValue
 
     def updateHardware(self):
-        self.topShooter.set(self.cache.topSetpoint, rev.CANSparkLowLevel.ControlType.kDutyCycle)
-        self.bottomShooter.set(self.cache.bottomSetpoint, rev.CANSparkLowLevel.ControlType.kDutyCycle)
+        self.topShooter.set(self.cache.topSetpoint, rev.CANSparkMaxLowLevel.ControlType.kDutyCycle)
+        self.bottomShooter.set(self.cache.bottomSetpoint, rev.CANSparkMaxLowLevel.ControlType.kDutyCycle)
 
     def cacheSensors(self):
         self.cache.topMotorCurrent = self.topShooter.getOutputCurrent()

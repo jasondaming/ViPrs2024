@@ -74,8 +74,8 @@ class ArmSubsystem(commands2.Subsystem):
         self.armRightSPIDController = SimplePIDController(constants.armConsts.armPIDValues)
 
 
-        self.armRight.IdleMode(rev.CANSparkBase.IdleMode.kCoast)
-        self.armLeft.IdleMode(rev.CANSparkBase.IdleMode.kCoast)
+        self.armRight.IdleMode(rev.CANSparkMax.IdleMode.kCoast)
+        self.armLeft.IdleMode(rev.CANSparkMax.IdleMode.kCoast)
 
         self.motorArmRightEncoder = self.armRight.getEncoder()
         self.motorArmLeftEncoder = self.armLeft.getEncoder()
@@ -148,10 +148,10 @@ class ArmSubsystem(commands2.Subsystem):
         # position with zero feedforward to hold position without additional input.
         # This is more of a "soft stop" that leverages the PID controller.
         gravity_compensation = self.calcGravityComp(self.getArmPosition())
-        # self.armRightPIDController.setReference(currentPos, rev.CANSparkLowLevel.ControlType.kPosition, 0, gravity_compensation, rev.SparkPIDController.ArbFFUnits.kVoltage)
-        # self.armLeftPIDController.setReference(currentPos, rev.CANSparkLowLevel.ControlType.kPosition, 0, gravity_compensation, rev.SparkPIDController.ArbFFUnits.kVoltage)
-        # self.armRightPIDController.setReference(currentPos, rev.CANSparkLowLevel.ControlType.kPosition, 0, gravity_compensation)
-        # self.armLeftPIDController.setReference(currentPos, rev.CANSparkLowLevel.ControlType.kPosition, 0, gravity_compensation)
+        # self.armRightPIDController.setReference(currentPos, rev.CANSparkMaxLowLevel.ControlType.kPosition, 0, gravity_compensation, rev.SparkPIDController.ArbFFUnits.kVoltage)
+        # self.armLeftPIDController.setReference(currentPos, rev.CANSparkMaxLowLevel.ControlType.kPosition, 0, gravity_compensation, rev.SparkPIDController.ArbFFUnits.kVoltage)
+        # self.armRightPIDController.setReference(currentPos, rev.CANSparkMaxLowLevel.ControlType.kPosition, 0, gravity_compensation)
+        # self.armLeftPIDController.setReference(currentPos, rev.CANSparkMaxLowLevel.ControlType.kPosition, 0, gravity_compensation)
 
     def calcGravityComp(self, armPos):
 
@@ -228,11 +228,11 @@ class ArmSubsystem(commands2.Subsystem):
             # PID Controller already set up with P, I, D values
             # Use setReference to move arm to target position
             # Ensure setReference is using correct units matching your encoders
-            print(f"armSubsystem.updateHardware() - currentPos={currentPos}, targetPos={targetPos}, ctrl={rev.CANSparkLowLevel.ControlType.kPosition}, pidSlot={constants.armConsts.slotID}, arbFeedforward={gravity_feedforward_voltage}")
-            # self.armRightPIDController.setReference(targetPos, rev.CANSparkLowLevel.ControlType.kSmartMotion, pidSlot=0, arbFeedforward=gravity_feedforward_voltage, arbFFUnits=rev.SparkPIDController.ArbFFUnits.kVoltage)
-            # self.armLeftPIDController.setReference(targetPos, rev.CANSparkLowLevel.ControlType.kSmartMotion, pidSlot=0, arbFeedforward=gravity_feedforward_voltage, arbFFUnits=rev.SparkPIDController.ArbFFUnits.kVoltage)
-            # self.armRightPIDController.setReference(targetPos, rev.CANSparkLowLevel.ControlType.kPosition, pidSlot=constants.armConsts.slotID, arbFeedforward=gravity_feedforward_voltage)
-            # self.armLeftPIDController.setReference(targetPos, rev.CANSparkLowLevel.ControlType.kPosition, pidSlot=constants.armConsts.slotID, arbFeedforward=gravity_feedforward_voltage)
+            print(f"armSubsystem.updateHardware() - currentPos={currentPos}, targetPos={targetPos}, ctrl={rev.CANSparkMaxLowLevel.ControlType.kPosition}, pidSlot={constants.armConsts.slotID}, arbFeedforward={gravity_feedforward_voltage}")
+            # self.armRightPIDController.setReference(targetPos, rev.CANSparkMaxLowLevel.ControlType.kSmartMotion, pidSlot=0, arbFeedforward=gravity_feedforward_voltage, arbFFUnits=rev.SparkPIDController.ArbFFUnits.kVoltage)
+            # self.armLeftPIDController.setReference(targetPos, rev.CANSparkMaxLowLevel.ControlType.kSmartMotion, pidSlot=0, arbFeedforward=gravity_feedforward_voltage, arbFFUnits=rev.SparkPIDController.ArbFFUnits.kVoltage)
+            # self.armRightPIDController.setReference(targetPos, rev.CANSparkMaxLowLevel.ControlType.kPosition, pidSlot=constants.armConsts.slotID, arbFeedforward=gravity_feedforward_voltage)
+            # self.armLeftPIDController.setReference(targetPos, rev.CANSparkMaxLowLevel.ControlType.kPosition, pidSlot=constants.armConsts.slotID, arbFeedforward=gravity_feedforward_voltage)
             
             self.armLeftSPIDController.set_setpoint(self.cache.setpoint)
             self.armRightSPIDController.set_setpoint(self.cache.setpoint)   

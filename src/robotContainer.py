@@ -37,7 +37,7 @@ class RobotContainer:
         # Control devices
         self.driverController = commands2.button.CommandXboxController(0)
         self.rightTriggerPressed = self.driverController.rightTrigger(threshold=0.5)
-        self.leftTriggerPressed = commands2.button.Trigger(lambda: self.driverController.getLeftTriggerAxis() > 0.5)
+        self.leftTriggerPressed = self.driverController.leftTrigger(threshold=0.5)
 
         # Subsystem inits
         self.robotDrive = DriveSubsystem()

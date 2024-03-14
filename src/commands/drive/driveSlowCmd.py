@@ -1,12 +1,12 @@
 import commands2
-from commands2.cmd import Command
+from commands2 import Command
 from subSystems.REVDriveSubsystem import DriveSubsystem
 
 class ToggleSlowModeCmd(Command):
     def __init__(self, drive: DriveSubsystem):
         super().__init__()
         self.drive = drive
-        self.addRequirements(self.drive)
+        self.getRequirements(self.drive)
 
     def initialize(self):
         """Called once when the command is initiated."""

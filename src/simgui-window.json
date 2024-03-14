@@ -1,15 +1,11 @@
 {
-  "Docking": {
-    "Data": []
-  },
   "MainWindow": {
     "GLOBAL": {
-      "fps": "120",
-      "height": "1369",
+      "height": "1009",
       "maximized": "1",
       "style": "1",
       "userScale": "4",
-      "width": "2560",
+      "width": "1920",
       "xpos": "0",
       "ypos": "23"
     }
@@ -31,22 +27,22 @@
     "###DIO": {
       "Collapsed": "0",
       "Pos": "198,31",
-      "Size": "227,298"
+      "Size": "32,41"
     },
     "###Encoders": {
       "Collapsed": "0",
       "Pos": "427,29",
-      "Size": "153,95"
+      "Size": "32,41"
     },
     "###FMS": {
       "Collapsed": "0",
       "Pos": "21,893",
-      "Size": "388,176"
+      "Size": "32,41"
     },
     "###Joysticks": {
       "Collapsed": "0",
-      "Pos": "1374,1092",
-      "Size": "1156,91"
+      "Pos": "1374,990",
+      "Size": "32,41"
     },
     "###Keyboard 0 Settings": {
       "Collapsed": "0",
@@ -65,7 +61,7 @@
     },
     "###Other Devices": {
       "Collapsed": "0",
-      "Pos": "2299,23",
+      "Pos": "1901,23",
       "Size": "250,695"
     },
     "###Plot <0>": {
@@ -75,18 +71,18 @@
     },
     "###RoboRIO": {
       "Collapsed": "0",
-      "Pos": "2267,749",
-      "Size": "163,182"
+      "Pos": "1901,749",
+      "Size": "32,41"
     },
     "###System Joysticks": {
       "Collapsed": "0",
       "Pos": "31,521",
-      "Size": "273,290"
+      "Size": "32,41"
     },
     "###Timing": {
       "Collapsed": "0",
       "Pos": "5,281",
-      "Size": "188,215"
+      "Size": "32,41"
     },
     "Debug##Default": {
       "Collapsed": "0",
@@ -96,7 +92,7 @@
     "Robot State": {
       "Collapsed": "0",
       "Pos": "5,20",
-      "Size": "126,152"
+      "Size": "32,41"
     }
   }
 }

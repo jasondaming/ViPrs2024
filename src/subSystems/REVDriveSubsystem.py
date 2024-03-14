@@ -45,15 +45,15 @@ class DriveSubsystem(commands2.Subsystem):
         self.rightFront = SparkMaxFactory.createDefaultSparkMax(constants.CANIDs.rightDriveSparkFront)
         self.rightBack = SparkMaxFactory.createDefaultSparkMax(constants.CANIDs.rightDriveSparkBack)
         
-        self.leftFront.setIdleMode(rev.CANSparkBase.IdleMode.kBrake)
-        self.leftBack.setIdleMode(rev.CANSparkBase.IdleMode.kBrake)
-        self.rightFront.setIdleMode(rev.CANSparkBase.IdleMode.kBrake)
-        self.rightBack.setIdleMode(rev.CANSparkBase.IdleMode.kBrake)
+        self.leftFront.setIdleMode(rev.CANSparkMax.IdleMode.kBrake)
+        self.leftBack.setIdleMode(rev.CANSparkMax.IdleMode.kBrake)
+        self.rightFront.setIdleMode(rev.CANSparkMax.IdleMode.kBrake)
+        self.rightBack.setIdleMode(rev.CANSparkMax.IdleMode.kBrake)
 
         self.leftDrive = wpilib.MotorControllerGroup(self.leftFront, self.leftBack)
         self.rightDrive = wpilib.MotorControllerGroup(self.rightFront, self.rightBack)
         
-        # self.spark1 = rev.CANSparkMax(5, rev._rev.CANSparkLowLevel.MotorType.kBrushless)
+        # self.spark1 = rev.CANSparkMax(5, rev._rev.CANSparkMaxLowLevel.MotorType.kBrushless)
         # self.drive1 = wpilib.drive.RobotDriveBase
         self.robotDrive = wpilib.drive.DifferentialDrive(
             self.leftDrive, self.rightDrive
